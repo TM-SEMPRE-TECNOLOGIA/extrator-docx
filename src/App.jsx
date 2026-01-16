@@ -682,14 +682,17 @@ export default function AppExtratorDocx() {
                 <span key={i}>{l}</span>
               ))}
             </div>
+          </div>
+        </Section>
 
-            <div className="actions" style={{ marginTop: "14px" }}>
-              <button
-                type="button"
-                onClick={downloadBruto}
-                disabled={phase !== "ok" || items.length === 0}
-                className="btn btn--primary"
-              >
+        {phase === "ok" ? (
+          <Section title="Resultado" desc="Pronto para download.">
+            <div className="status__top" style={{ marginBottom: "10px" }}>
+              <span>Extracao concluida com sucesso.</span>
+              <span className="status__file">{fmtInt(items.length)} itens</span>
+            </div>
+            <div className="actions">
+              <button type="button" onClick={downloadBruto} disabled={!items.length} className="btn btn--primary">
                 <Download size={16} />
                 Baixar Excel bruto
               </button>
@@ -698,19 +701,8 @@ export default function AppExtratorDocx() {
                 Baixar Log
               </button>
             </div>
-          </div>
-        </Section>
-
-        <Section title="2) Resumo" desc="Metricas do processamento e do consolidado (quando gerado).">
-          <div className="stats">
-            <StatCard label="Itens extraidos" value={fmtInt(items.length)} />
-            <StatCard label="Itens somados" value={fmtInt(aggItems.length)} sub={aggPhase === "ok" ? `Regra: ${keyLabel}` : "-"} />
-            <div className="stats__wide">
-              <StatCard label="Tabelas / Itens" value={meta ? `${meta.tables_total} / ${meta.itens_tables}` : "-"} />
-              <StatCard label="Ignoradas" value={meta ? fmtInt(meta.rows_ignored) : "-"} />
-            </div>
-          </div>
-        </Section>
+          </Section>
+        ) : null}
 
         <AnimatePresence>
           {phase === "ok" && items.length > 0 ? (
@@ -798,58 +790,76 @@ export default function AppExtratorDocx() {
           ) : null}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {phase === "ok" && items.length ? (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
-              <Section
-                title="4) Previa dos itens extraidos"
-                desc="Mostra os 10 primeiros itens extraidos para conferencia rapida."
-              >
-                <div className="status__top" style={{ marginBottom: "10px" }}>
-                  <span className="panel__title" style={{ fontSize: "12px" }}>
-                    Primeiros 10
-                  </span>
-                  <span className="status__file">{fmtInt(items.length)} linhas</span>
-                </div>
+        <details className="panel">
+          <summary className="panel__title">Detalhes tecnicos</summary>
+          <Section title="2) Resumo" desc="Metricas do processamento e do consolidado (quando gerado).">
+            <div className="stats">
+              <StatCard label="Itens extraidos" value={fmtInt(items.length)} />
+              <StatCard
+                label="Itens somados"
+                value={fmtInt(aggItems.length)}
+                sub={aggPhase === "ok" ? `Regra: ${keyLabel}` : "-"}
+              />
+              <div className="stats__wide">
+                <StatCard label="Tabelas / Itens" value={meta ? `${meta.tables_total} / ${meta.itens_tables}` : "-"} />
+                <StatCard label="Ignoradas" value={meta ? fmtInt(meta.rows_ignored) : "-"} />
+              </div>
+            </div>
+          </Section>
 
-                <div className="preview">
-                  {items.slice(0, 10).map((it, idx) => (
-                    <div key={idx} className="preview__item">
-                      <div className="preview__meta">
-                        <div className="preview__code">{it.codigo}</div>
-                        <div className="preview__desc">{it.descricao || "(sem descricao)"}</div>
-                        <div className="preview__origin">origem: {it.origem}</div>
+          <AnimatePresence>
+            {phase === "ok" && items.length ? (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
+                <Section
+                  title="4) Previa dos itens extraidos"
+                  desc="Mostra os 10 primeiros itens extraidos para conferencia rapida."
+                >
+                  <div className="status__top" style={{ marginBottom: "10px" }}>
+                    <span className="panel__title" style={{ fontSize: "12px" }}>
+                      Primeiros 10
+                    </span>
+                    <span className="status__file">{fmtInt(items.length)} linhas</span>
+                  </div>
+
+                  <div className="preview">
+                    {items.slice(0, 10).map((it, idx) => (
+                      <div key={idx} className="preview__item">
+                        <div className="preview__meta">
+                          <div className="preview__code">{it.codigo}</div>
+                          <div className="preview__desc">{it.descricao || "(sem descricao)"}</div>
+                          <div className="preview__origin">origem: {it.origem}</div>
+                        </div>
+                        <div className="preview__qty">{it.quantidade_raw}</div>
                       </div>
-                      <div className="preview__qty">{it.quantidade_raw}</div>
-                    </div>
-                  ))}
-                </div>
-              </Section>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+                    ))}
+                  </div>
+                </Section>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
 
-        <Section title="5) Regras e privacidade" desc="Referencia rapida das regras de extracao e garantia de processamento local.">
-          <div className="info-grid">
-            <div className="info-card">
-              <div className="info-card__title">Regras de extracao</div>
-              <ul>
-                <li>Busca tabelas com cabecalho "Itens" na 1a linha.</li>
-                <li>Coluna 1: Codigo (aceita 17.4 / 13.12 etc). Ignora #N/D.</li>
-                <li>Coluna 2: Descricao.</li>
-                <li>Quantidade: prefere 3a coluna; fallback por numero na linha.</li>
-                <li>Exporta Excel (.xlsx) e Log (.txt).</li>
-              </ul>
-            </div>
+          <Section title="5) Regras e privacidade" desc="Referencia rapida das regras de extracao e garantia de processamento local.">
+            <div className="info-grid">
+              <div className="info-card">
+                <div className="info-card__title">Regras de extracao</div>
+                <ul>
+                  <li>Busca tabelas com cabecalho "Itens" na 1a linha.</li>
+                  <li>Coluna 1: Codigo (aceita 17.4 / 13.12 etc). Ignora #N/D.</li>
+                  <li>Coluna 2: Descricao.</li>
+                  <li>Quantidade: prefere 3a coluna; fallback por numero na linha.</li>
+                  <li>Exporta Excel (.xlsx) e Log (.txt).</li>
+                </ul>
+              </div>
 
-            <div className="info-card">
-              <div className="info-card__title">Privacidade</div>
-              <p className="panel__desc">
-                O processamento acontece no seu navegador. Nenhum arquivo e enviado para servidor.
-              </p>
+              <div className="info-card">
+                <div className="info-card__title">Privacidade</div>
+                <p className="panel__desc">
+                  O processamento acontece no seu navegador. Nenhum arquivo e enviado para servidor.
+                </p>
+              </div>
             </div>
-          </div>
-        </Section>
+          </Section>
+        </details>
       </main>
 
       <footer className="footer">TM Sempre Tecnologia - Extrator DOCX - v1.3</footer>
