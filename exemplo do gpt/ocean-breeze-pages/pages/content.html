@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conteúdo & Microcopy - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Guia de estilo de escrita e microcopy">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">Conteúdo & Microcopy</h2>
+            <p class="section-intro">
+                Guia de estilo de escrita para criar conteúdo claro, conciso e alinhado com a identidade
+                da marca. Boas práticas de microcopy melhoram a experiência do usuário e reduzem confusão.
+            </p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tom de Voz</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">✅ Claro e Direto</div>
+                    <div class="card-description">
+                        Use linguagem simples e objetiva. Evite jargões desnecessários e termos técnicos
+                        quando alternativas mais simples existirem.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">✅ Amigável</div>
+                    <div class="card-description">
+                        Mantenha um tom amigável e acessível. Escreva como se estivesse conversando
+                        com um colega, não dando ordens.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">✅ Profissional</div>
+                    <div class="card-description">
+                        Seja profissional sem ser formal demais. Evite gírias excessivas, mas não
+                        seja robotizado.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">✅ Útil</div>
+                    <div class="card-description">
+                        Foque em ajudar o usuário. Cada mensagem deve ter um propósito claro e
+                        fornecer valor.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Mensagens de Sucesso</h2>
+            <div class="card">
+                <h3 class="subsection-title">Boas Práticas:</h3>
+                <div class="alert alert-success" style="margin-top: 12px;">
+                    ✅ Ótimo! Seu perfil foi atualizado com sucesso.
+                </div>
+                <p class="section-intro" style="margin-top: 8px;">
+                    <strong>Por quê funciona:</strong> Confirma a ação, usa linguagem positiva e é específico.
+                </p>
+
+                <h3 class="subsection-title" style="margin-top: 24px;">Evite:</h3>
+                <div class="alert alert-success" style="margin-top: 12px;">
+                    ✅ Operação realizada.
+                </div>
+                <p class="section-intro" style="margin-top: 8px;">
+                    <strong>Problema:</strong> Muito genérico, não especifica qual operação.
+                </p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Mensagens de Erro</h2>
+            <div class="card">
+                <h3 class="subsection-title">Boas Práticas:</h3>
+                <div class="alert alert-destructive" style="margin-top: 12px;">
+                    ⚠️ Não foi possível salvar suas alterações. Verifique sua conexão e tente novamente.
+                </div>
+                <p class="section-intro" style="margin-top: 8px;">
+                    <strong>Por quê funciona:</strong> Explica o problema e sugere uma solução.
+                </p>
+
+                <h3 class="subsection-title" style="margin-top: 24px;">Evite:</h3>
+                <div class="alert alert-destructive" style="margin-top: 12px;">
+                    ⚠️ Erro 500: Internal Server Error
+                </div>
+                <p class="section-intro" style="margin-top: 8px;">
+                    <strong>Problema:</strong> Jargão técnico sem explicação ou solução para o usuário.
+                </p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Labels de Formulário</h2>
+            <div class="card">
+                <h3 class="subsection-title">Seja específico e útil:</h3>
+                <div style="max-width: 400px; margin-top: 16px;">
+                    <div class="form-group">
+                        <label class="label">Email profissional</label>
+                        <input type="email" class="input" placeholder="seu@empresa.com">
+                        <p style="font-size: 12px; color: var(--TM-muted-foreground); margin-top: 4px;">
+                            Usaremos este email para comunicações importantes.
+                        </p>
+                    </div>
+                </div>
+                <p class="section-intro" style="margin-top: 16px;">
+                    <strong>Boas práticas:</strong>
+                </p>
+                <ul style="margin-left: 24px; margin-top: 8px; line-height: 1.8;">
+                    <li>Labels descritivos (não apenas "Email", mas "Email profissional")</li>
+                    <li>Placeholders com exemplos reais</li>
+                    <li>Texto de ajuda quando necessário</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Botões</h2>
+            <div class="card">
+                <h3 class="subsection-title">Use verbos de ação específicos:</h3>
+                <div class="button-grid" style="margin-top: 16px;">
+                    <button class="btn btn-primary">✅ Salvar Alterações</button>
+                    <button class="btn btn-destructive">✅ Excluir Conta</button>
+                    <button class="btn btn-outline">✅ Cancelar</button>
+                </div>
+                <p class="section-intro" style="margin-top: 16px;">
+                    <strong>Evite:</strong>
+                </p>
+                <div class="button-grid" style="margin-top: 12px;">
+                    <button class="btn btn-secondary">❌ OK</button>
+                    <button class="btn btn-secondary">❌ Enviar</button>
+                    <button class="btn btn-secondary">❌ Clique Aqui</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Estados Vazios</h2>
+            <div class="card">
+                <h3 class="subsection-title">Seja útil e encoraje ação:</h3>
+                <div class="card"
+                    style="margin-top: 16px; text-align: center; padding: 48px 24px; background: var(--TM-muted);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                    <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Nenhum dashboard criado ainda
+                    </h3>
+                    <p style="color: var(--TM-muted-foreground); margin-bottom: 16px;">
+                        Crie seu primeiro dashboard para começar a visualizar seus dados.
+                    </p>
+                    <button class="btn btn-primary">Criar Dashboard</button>
+                </div>
+                <p class="section-intro" style="margin-top: 16px;">
+                    <strong>Elementos importantes:</strong>
+                </p>
+                <ul style="margin-left: 24px; margin-top: 8px; line-height: 1.8;">
+                    <li>Ícone ou ilustração relevante</li>
+                    <li>Título claro explicando o estado</li>
+                    <li>Descrição breve e útil</li>
+                    <li>Call-to-action claro</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Checklist de Conteúdo</h2>
+            <div class="card">
+                <ul style="margin-left: 24px; line-height: 2;">
+                    <li>☑️ Linguagem clara e simples</li>
+                    <li>☑️ Tom amigável e profissional</li>
+                    <li>☑️ Mensagens de erro explicam o problema e sugerem soluções</li>
+                    <li>☑️ Mensagens de sucesso são específicas</li>
+                    <li>☑️ Labels de formulário são descritivos</li>
+                    <li>☑️ Botões usam verbos de ação específicos</li>
+                    <li>☑️ Estados vazios encorajam ação</li>
+                    <li>☑️ Sem jargões técnicos desnecessários</li>
+                    <li>☑️ Português correto com acentuação adequada</li>
+                    <li>☑️ Consistência de termos em toda a aplicação</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Glossário de Termos</h2>
+            <div class="card">
+                <p class="section-intro" style="margin-bottom: 16px;">
+                    Mantenha consistência usando sempre os mesmos termos:
+                </p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--TM-border);">
+                            <th style="text-align: left; padding: 8px;">Use</th>
+                            <th style="text-align: left; padding: 8px;">Evite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--TM-border);">
+                            <td style="padding: 12px 8px;">Salvar</td>
+                            <td style="padding: 12px 8px;">Gravar, Guardar</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--TM-border);">
+                            <td style="padding: 12px 8px;">Excluir</td>
+                            <td style="padding: 12px 8px;">Deletar, Apagar, Remover</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--TM-border);">
+                            <td style="padding: 12px 8px;">Configurações</td>
+                            <td style="padding: 12px 8px;">Opções, Preferências, Ajustes</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px 8px;">Entrar</td>
+                            <td style="padding: 12px 8px;">Login, Logar, Acessar</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>

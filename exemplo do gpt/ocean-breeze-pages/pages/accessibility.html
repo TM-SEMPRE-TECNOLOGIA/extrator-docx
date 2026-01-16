@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acessibilidade - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Diretrizes de acessibilidade WCAG 2.1">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">Acessibilidade</h2>
+            <p class="section-intro">
+                Diretrizes de acessibilidade baseadas em WCAG 2.1 nível AA. Garantir que todos os usuários
+                possam acessar e usar nossas interfaces é fundamental para criar produtos inclusivos.
+            </p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Contraste de Cores</h2>
+            <div class="alert alert-info">
+                ℹ️ <strong>WCAG AA:</strong> Razão de contraste mínima de 4.5:1 para texto normal e 3:1 para texto
+                grande (18px+ ou 14px+ bold).
+            </div>
+            <div class="card-grid" style="margin-top: 16px;">
+                <div class="card">
+                    <div class="card-title">✅ Bom Contraste</div>
+                    <div
+                        style="background: var(--TM-primary); color: var(--TM-primary-foreground); padding: 16px; border-radius: var(--TM-radius-md); margin-top: 8px;">
+                        Texto em fundo primário (contraste adequado)
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">✅ Texto em Card</div>
+                    <div
+                        style="background: var(--TM-card); color: var(--TM-foreground); padding: 16px; border: 1px solid var(--TM-border); border-radius: var(--TM-radius-md); margin-top: 8px;">
+                        Texto em card com contraste adequado
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Navegação por Teclado</h2>
+            <div class="card">
+                <h3 class="subsection-title">Todos os elementos interativos devem ser acessíveis via teclado:</h3>
+                <ul style="margin-left: 24px; margin-top: 12px; line-height: 1.8;">
+                    <li><strong>Tab:</strong> Navegar para o próximo elemento focável</li>
+                    <li><strong>Shift + Tab:</strong> Navegar para o elemento anterior</li>
+                    <li><strong>Enter/Space:</strong> Ativar botões e links</li>
+                    <li><strong>Setas:</strong> Navegar em menus e listas</li>
+                    <li><strong>Esc:</strong> Fechar modais e menus</li>
+                </ul>
+            </div>
+            <div class="alert alert-success" style="margin-top: 16px;">
+                ✅ Teste: Tente navegar por esta página usando apenas o teclado. Todos os elementos
+                devem ser acessíveis e ter indicadores de foco visíveis.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Indicadores de Foco</h2>
+            <div class="card">
+                <p class="section-intro" style="margin-bottom: 16px;">
+                    Elementos focados devem ter indicadores visuais claros. Nosso sistema usa um anel
+                    de foco com a cor primária:
+                </p>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <button class="btn btn-primary">Clique e use Tab</button>
+                    <input type="text" class="input" placeholder="Foque neste input" style="max-width: 250px;">
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Texto Alternativo</h2>
+            <div class="card">
+                <h3 class="subsection-title">Imagens e Ícones</h3>
+                <p class="section-intro">
+                    Todas as imagens devem ter atributos <code class="font-mono">alt</code> descritivos.
+                    Ícones decorativos devem ter <code class="font-mono">aria-hidden="true"</code>.
+                </p>
+                <pre class="font-mono"
+                    style="overflow-x: auto; padding: 16px; background: var(--TM-muted); border-radius: var(--TM-radius-md); margin-top: 12px;">
+&lt;!-- Imagem informativa --&gt;
+&lt;img src="grafico.png" alt="Gráfico mostrando crescimento de 25% em vendas"&gt;
+
+&lt;!-- Ícone decorativo --&gt;
+&lt;span aria-hidden="true"&gt;🎨&lt;/span&gt;
+                </pre>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">ARIA Labels</h2>
+            <div class="card">
+                <h3 class="subsection-title">Use ARIA para melhorar a semântica:</h3>
+                <pre class="font-mono"
+                    style="overflow-x: auto; padding: 16px; background: var(--TM-muted); border-radius: var(--TM-radius-md); margin-top: 12px;">
+&lt;!-- Botão com ícone --&gt;
+&lt;button aria-label="Fechar modal"&gt;×&lt;/button&gt;
+
+&lt;!-- Região de navegação --&gt;
+&lt;nav aria-label="Navegação principal"&gt;...&lt;/nav&gt;
+
+&lt;!-- Estado de loading --&gt;
+&lt;div role="status" aria-live="polite"&gt;Carregando...&lt;/div&gt;
+                </pre>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tamanho de Toque</h2>
+            <div class="alert alert-info">
+                ℹ️ <strong>Mínimo recomendado:</strong> 44x44px para áreas de toque em dispositivos móveis.
+                Isso garante que usuários com dificuldades motoras possam interagir facilmente.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Checklist de Acessibilidade</h2>
+            <div class="card">
+                <ul style="margin-left: 24px; line-height: 2;">
+                    <li>☑️ Contraste de cores adequado (4.5:1 para texto normal)</li>
+                    <li>☑️ Navegação completa por teclado</li>
+                    <li>☑️ Indicadores de foco visíveis</li>
+                    <li>☑️ Texto alternativo em imagens</li>
+                    <li>☑️ ARIA labels onde necessário</li>
+                    <li>☑️ Estrutura semântica HTML5</li>
+                    <li>☑️ Tamanhos de toque adequados (44x44px mínimo)</li>
+                    <li>☑️ Suporte a leitores de tela</li>
+                    <li>☑️ Formulários com labels associados</li>
+                    <li>☑️ Mensagens de erro claras e descritivas</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>
