@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokens - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Tokens de design: cores, tipografia, sombras, raios e espaçamentos">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">Tokens de Design</h2>
+            <p class="section-intro">
+                Os tokens de design são os blocos fundamentais do sistema. Eles garantem consistência visual
+                e facilitam a manutenção ao centralizar valores de cores, tipografia, espaçamentos e outros
+                atributos visuais em variáveis CSS reutilizáveis.
+            </p>
+        </section>
+
+        <!-- Paleta de Cores -->
+        <section class="section">
+            <h2 class="section-title">Paleta de Cores</h2>
+
+            <h3 class="subsection-title">Cores Principais</h3>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-sample" style="background: var(--TM-primary);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Primary</div>
+                        <div class="color-value">--TM-primary</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-sample" style="background: var(--TM-secondary);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Secondary</div>
+                        <div class="color-value">--TM-secondary</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-sample" style="background: var(--TM-accent);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Accent</div>
+                        <div class="color-value">--TM-accent</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-sample" style="background: var(--TM-destructive);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Destructive</div>
+                        <div class="color-value">--TM-destructive</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-sample" style="background: var(--TM-muted);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Muted</div>
+                        <div class="color-value">--TM-muted</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-sample" style="background: var(--TM-card);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Card</div>
+                        <div class="color-value">--TM-card</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Cores de Gráficos</h3>
+            <p class="section-intro">Paleta de 5 tons de verde para visualizações de dados e gráficos.</p>
+            <div class="chart-grid">
+                <div class="chart-bar" style="background: var(--TM-chart-1); height: 100%;">100%</div>
+                <div class="chart-bar" style="background: var(--TM-chart-2); height: 85%;">85%</div>
+                <div class="chart-bar" style="background: var(--TM-chart-3); height: 70%;">70%</div>
+                <div class="chart-bar" style="background: var(--TM-chart-4); height: 55%;">55%</div>
+                <div class="chart-bar" style="background: var(--TM-chart-5); height: 40%;">40%</div>
+            </div>
+        </section>
+
+        <!-- Tipografia -->
+        <section class="section">
+            <h2 class="section-title">Tipografia</h2>
+
+            <div class="typography-sample">
+                <h3 class="subsection-title font-sans">DM Sans (Sans-serif)</h3>
+                <p class="font-sans">A fonte principal do sistema, utilizada para textos gerais, botões e interfaces.
+                    Possui excelente legibilidade e múltiplos pesos disponíveis.</p>
+                <p class="font-sans" style="font-size: 12px; color: var(--TM-muted-foreground);">
+                    <code class="font-mono">--TM-font-sans: "DM Sans", sans-serif;</code>
+                </p>
+            </div>
+
+            <div class="typography-sample">
+                <h3 class="subsection-title font-serif">Lora (Serif)</h3>
+                <p class="font-serif">Uma fonte serifada elegante, ideal para títulos, destaques e conteúdo editorial
+                    que requer uma aparência mais sofisticada.</p>
+                <p class="font-sans" style="font-size: 12px; color: var(--TM-muted-foreground);">
+                    <code class="font-mono">--TM-font-serif: "Lora", serif;</code>
+                </p>
+            </div>
+
+            <div class="typography-sample">
+                <h3 class="subsection-title font-mono">IBM Plex Mono (Monospace)</h3>
+                <p class="font-mono">Fonte monoespaçada para código, tokens CSS e valores técnicos. Garante alinhamento
+                    perfeito de caracteres.</p>
+                <p class="font-sans" style="font-size: 12px; color: var(--TM-muted-foreground);">
+                    <code class="font-mono">--TM-font-mono: "IBM Plex Mono", monospace;</code>
+                </p>
+            </div>
+
+            <h3 class="subsection-title">Escala Tipográfica</h3>
+            <div class="card">
+                <h1 style="font-size: 32px; margin-bottom: 8px;">Heading 1 - 32px</h1>
+                <h2 style="font-size: 28px; margin-bottom: 8px;">Heading 2 - 28px</h2>
+                <h3 style="font-size: 24px; margin-bottom: 8px;">Heading 3 - 24px</h3>
+                <h4 style="font-size: 20px; margin-bottom: 8px;">Heading 4 - 20px</h4>
+                <h5 style="font-size: 18px; margin-bottom: 8px;">Heading 5 - 18px</h5>
+                <p style="font-size: 16px; margin-bottom: 8px;">Body - 16px (padrão)</p>
+                <p style="font-size: 14px; margin-bottom: 8px;">Small - 14px</p>
+                <p style="font-size: 12px;">Caption - 12px</p>
+            </div>
+        </section>
+
+        <!-- Sombras -->
+        <section class="section">
+            <h2 class="section-title">Sombras</h2>
+            <p class="section-intro">
+                Escala de sombras para criar profundidade e hierarquia visual. Use sombras menores para elementos
+                sutis e sombras maiores para modais e elementos flutuantes.
+            </p>
+            <div class="shadow-grid">
+                <div class="shadow-card shadow-2xs">2xs</div>
+                <div class="shadow-card shadow-xs">xs</div>
+                <div class="shadow-card shadow-sm">sm</div>
+                <div class="shadow-card shadow-md">md</div>
+                <div class="shadow-card shadow-lg">lg</div>
+                <div class="shadow-card shadow-xl">xl</div>
+                <div class="shadow-card shadow-2xl">2xl</div>
+            </div>
+        </section>
+
+        <!-- Raios de Borda -->
+        <section class="section">
+            <h2 class="section-title">Raios de Borda (Border Radius)</h2>
+            <p class="section-intro">
+                Valores padronizados para bordas arredondadas, criando uma linguagem visual consistente.
+            </p>
+            <div class="card-grid">
+                <div class="card" style="border-radius: var(--TM-radius-sm);">
+                    <div class="card-title">Small</div>
+                    <div class="card-description font-mono">--TM-radius-sm</div>
+                </div>
+                <div class="card" style="border-radius: var(--TM-radius-md);">
+                    <div class="card-title">Medium</div>
+                    <div class="card-description font-mono">--TM-radius-md</div>
+                </div>
+                <div class="card" style="border-radius: var(--TM-radius-lg);">
+                    <div class="card-title">Large</div>
+                    <div class="card-description font-mono">--TM-radius-lg</div>
+                </div>
+                <div class="card" style="border-radius: var(--TM-radius-xl);">
+                    <div class="card-title">Extra Large</div>
+                    <div class="card-description font-mono">--TM-radius-xl</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Espaçamento -->
+        <section class="section">
+            <h2 class="section-title">Escala de Espaçamento</h2>
+            <p class="section-intro">
+                Sistema de espaçamento baseado em múltiplos de 4px para criar ritmo visual consistente.
+            </p>
+            <div class="spacing-grid">
+                <div class="spacing-item">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-box" style="width: 4px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-box" style="width: 8px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">12px</span>
+                    <div class="spacing-box" style="width: 12px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-box" style="width: 16px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-box" style="width: 24px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-box" style="width: 32px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-box" style="width: 48px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-box" style="width: 64px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Referência Rápida -->
+        <section class="section">
+            <h2 class="section-title">Referência Rápida de Tokens</h2>
+            <div class="card">
+                <h3 class="subsection-title">Como Usar</h3>
+                <p class="section-intro">Todos os tokens estão disponíveis como variáveis CSS:</p>
+                <pre class="font-mono"
+                    style="overflow-x: auto; padding: 16px; background: var(--TM-muted); border-radius: var(--TM-radius-md); margin-top: 12px;">
+/* Cores */
+background: var(--TM-primary);
+color: var(--TM-foreground);
+border-color: var(--TM-border);
+
+/* Tipografia */
+font-family: var(--TM-font-sans);
+
+/* Sombras */
+box-shadow: var(--TM-shadow-md);
+
+/* Raios */
+border-radius: var(--TM-radius-lg);
+                </pre>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>
