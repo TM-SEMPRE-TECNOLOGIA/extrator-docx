@@ -9,13 +9,15 @@ import {
   AlertTriangle,
   Info,
   Sigma,
+  Moon,
+  Sun,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
 
 /**
- * Extrator de Itens DOCX (Online)
- * Layout com CSS proprio + hierarquia visual.
+ * Extrator de Itens DOCX - Ocean Breeze Design
+ * Redesigned com foco em simplicidade e hierarquia visual
  */
 
 const CODE_RE = /^\s*\d+(?:\.\d+)?\s*$/;
@@ -163,13 +165,13 @@ function buildLogText({ fileName, statusLines, meta, items, aggregated }) {
   const ignored = (meta?.ignored_details ?? []).slice(0, 300);
   const ignoredBlock = ignored.length
     ? [
-        "--- Detalhes ignorados (amostra) ---",
-        ...ignored.map((d) => `- ${d}`),
-        ignored.length < (meta?.ignored_details ?? []).length
-          ? `... (${(meta?.ignored_details ?? []).length - ignored.length} a mais)`
-          : "",
-        "",
-      ].filter(Boolean)
+      "--- Detalhes ignorados (amostra) ---",
+      ...ignored.map((d) => `- ${d}`),
+      ignored.length < (meta?.ignored_details ?? []).length
+        ? `... (${(meta?.ignored_details ?? []).length - ignored.length} a mais)`
+        : "",
+      "",
+    ].filter(Boolean)
     : [];
 
   const sample = (items ?? []).slice(0, 20).map(
@@ -307,26 +309,22 @@ function aggregateItems(items, rule) {
     }
   });
 
-  return Array.from(map.values()).sort((a, b) => {
-    const ak = `${a.codigo} ${a.descricao}`.trim().toLowerCase();
-    const bk = `${b.codigo} ${b.descricao}`.trim().toLowerCase();
-    return ak.localeCompare(bk, "pt-BR");
-  });
+  return Array.from(map.values());
 }
 
 function Badge({ kind, icon, children }) {
   const cls =
     kind === "idle"
-      ? "badge badge--idle"
+      ? "tm-badge tm-badge--idle"
       : kind === "work"
-      ? "badge badge--work"
-      : kind === "ok"
-      ? "badge badge--ok"
-      : "badge badge--err";
+        ? "tm-badge tm-badge--work"
+        : kind === "ok"
+          ? "tm-badge tm-badge--ok"
+          : "tm-badge tm-badge--err";
 
   return (
     <span className={cls}>
-      <span className="badge__icon">{icon}</span>
+      <span className="tm-badge__icon">{icon}</span>
       <span>{children}</span>
     </span>
   );
@@ -334,25 +332,25 @@ function Badge({ kind, icon, children }) {
 
 function StatCard({ label, value, sub }) {
   return (
-    <div className="stat-card">
-      <div className="stat-card__label">{label}</div>
-      <div className="stat-card__value">{value}</div>
-      {sub ? <div className="stat-card__sub">{sub}</div> : null}
+    <div className="tm-stat">
+      <div className="tm-stat__label">{label}</div>
+      <div className="tm-stat__value">{value}</div>
+      {sub ? <div className="tm-stat__sub">{sub}</div> : null}
     </div>
   );
 }
 
 function Section({ title, desc, right, children }) {
   return (
-    <section className="panel">
-      <div className="panel__header">
-        <div>
-          <h2 className="panel__title">{title}</h2>
-          {desc ? <p className="panel__desc">{desc}</p> : null}
+    <section className="tm-panel">
+      <div className="tm-panel__header">
+        <div className="tm-panel__left">
+          <h2 className="tm-panel__title">{title}</h2>
+          {desc ? <div className="tm-panel__desc">{desc}</div> : null}
         </div>
-        {right ? <div className="panel__right">{right}</div> : null}
+        {right ? <div className="tm-panel__right">{right}</div> : null}
       </div>
-      {children}
+      <div className="tm-panel__body">{children}</div>
     </section>
   );
 }
@@ -360,13 +358,14 @@ function Section({ title, desc, right, children }) {
 export default function AppExtratorDocx() {
   const inputRef = useRef(null);
   const [drag, setDrag] = useState(false);
+  const [theme, setTheme] = useState("light");
 
   const [file, setFile] = useState(null);
   const [phase, setPhase] = useState("idle");
   const [statusText, setStatusText] = useState("Envie um .docx para iniciar.");
   const [lines, setLines] = useState(["Pronto para receber arquivo."]);
 
-  const [items, setItems] = useState(/** @type {Item[]} */ ([]));
+  const [items, setItems] = useState(/** @type {Item[]} */([]));
   const [meta, setMeta] = useState(null);
   const [logText, setLogText] = useState("");
 
@@ -394,7 +393,7 @@ export default function AppExtratorDocx() {
     setFile(f);
     setPhase("idle");
     setStatusText("Arquivo carregado. Pronto para processar.");
-    setLines(["Arquivo selecionado", "Clique em PROCESSAR DOCUMENTO"]);
+    setLines(["Arquivo selecionado", "Clique em EXTRAIR ITENS"]);
 
     setItems([]);
     setMeta(null);
@@ -478,8 +477,7 @@ export default function AppExtratorDocx() {
       setStatusText("Extracao concluida!");
       setLines([
         `Itens encontrados: ${fmtInt(extracted.length)}`,
-        "Gere Excel bruto e (opcional) consolidado",
-        "Log disponivel para auditoria",
+        "Downloads disponiveis abaixo",
       ]);
     } catch (err) {
       setPhase("err");
@@ -549,13 +547,13 @@ export default function AppExtratorDocx() {
         aggRule === "code_only"
           ? "Apenas Codigo"
           : aggRule === "desc_only"
-          ? "Apenas Descricao"
-          : "Codigo + Descricao";
-      setAggText("Soma concluida!");
+            ? "Apenas Descricao"
+            : "Codigo + Descricao";
+      setAggText("Consolidacao concluida!");
       setAggLines([
         `Regra: ${keyLabel}`,
         `Itens unicos: ${fmtInt(ag.length)}`,
-        "Excel consolidado pronto",
+        "Planilha pronta para download",
       ]);
 
       if (file) {
@@ -578,50 +576,77 @@ export default function AppExtratorDocx() {
   }, [aggRule, canAggregate, items, file]);
 
   const badge = useMemo(() => {
-    if (phase === "work") return { kind: "work", icon: <Loader2 size={16} className="spin" /> };
+    if (phase === "work") return { kind: "work", icon: <Loader2 size={16} className="tm-spin" /> };
     if (phase === "ok") return { kind: "ok", icon: <CheckCircle2 size={16} /> };
     if (phase === "err") return { kind: "err", icon: <AlertTriangle size={16} /> };
     return { kind: "idle", icon: <Info size={16} /> };
   }, [phase]);
 
   const aggBadge = useMemo(() => {
-    if (aggPhase === "work") return { kind: "work", icon: <Loader2 size={16} className="spin" /> };
+    if (aggPhase === "work") return { kind: "work", icon: <Loader2 size={16} className="tm-spin" /> };
     if (aggPhase === "ok") return { kind: "ok", icon: <Sigma size={16} /> };
     if (aggPhase === "err") return { kind: "err", icon: <AlertTriangle size={16} /> };
     return { kind: "idle", icon: <Info size={16} /> };
   }, [aggPhase]);
 
-  const keyLabel =
-    aggRule === "code_only" ? "Apenas Codigo" : aggRule === "desc_only" ? "Apenas Descricao" : "Codigo + Descricao";
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  }, []);
 
   return (
-    <div className="app">
-      <header className="app__header">
-        <div className="brand">
-          <img className="brand__logo" src="/tm_logo.svg" alt="TM Sempre Tecnologia" />
-          <div className="brand__name">TM Sempre Tecnologia</div>
-          <div className="brand__sub">Extrator de Itens DOCX - Layout vertical</div>
+    <div className={cn("tm-root", theme === "dark" && "dark")}>
+      <header className="tm-header">
+        <div className="tm-brand">
+          <div className="tm-brand__mark">TM</div>
+          <div>
+            <div className="tm-brand__name">TM Sempre Tecnologia</div>
+            <div className="tm-brand__sub">Extrator de Itens DOCX</div>
+          </div>
         </div>
-        <div className="header__meta">
-          <span className="pill pill--online">
-            <span className="dot" />
+
+        <div className="tm-header__right">
+          <span className="tm-pill tm-pill--online">
+            <span className="tm-dot" />
             Online
           </span>
-          <span className="pill">v1.3</span>
+          <button type="button" className="tm-btn tm-btn--outline" onClick={toggleTheme} aria-label="Alternar tema">
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
       </header>
 
-      <main className="app__main">
+      <main className="tm-main">
+        {/* HERO - Só aparece no idle */}
+        {phase === "idle" && !file && (
+          <div style={{ textAlign: "center", padding: "48px 20px 32px", marginBottom: "24px" }}>
+            <h1 style={{
+              fontSize: "clamp(28px, 5vw, 40px)",
+              fontWeight: "800",
+              marginBottom: "16px",
+              letterSpacing: "-0.5px",
+              lineHeight: "1.1"
+            }}>
+              Extraia itens do seu DOCX em segundos
+            </h1>
+            <p style={{
+              fontSize: "16px",
+              color: "var(--TM-muted-foreground)",
+              maxWidth: "560px",
+              margin: "0 auto",
+              lineHeight: "1.6"
+            }}>
+              Arraste seu relatório DOCX aqui. Identificamos as tabelas de itens e geramos o Excel para você.
+            </p>
+          </div>
+        )}
+
+        {/* UPLOAD SECTION */}
         <Section
-          title="1) Enviar e processar"
-          desc={
-            <>
-              Envie um arquivo <b>.docx</b>. Depois gere o <b>Excel bruto</b> e (opcional) o <b>consolidado</b>.
-            </>
-          }
+          title="Upload do Arquivo"
+          desc="Arraste seu DOCX aqui ou clique para selecionar"
           right={
             <Badge kind={badge.kind} icon={badge.icon}>
-              {phase === "idle" ? "Aguardando" : phase === "work" ? "Processando" : phase === "ok" ? "Sucesso" : "Erro"}
+              {phase === "idle" ? "Aguardando" : phase === "work" ? "Processando" : phase === "ok" ? "Concluído" : "Erro"}
             </Badge>
           }
         >
@@ -642,227 +667,170 @@ export default function AppExtratorDocx() {
               setDrag(false);
             }}
             onDrop={onDrop}
-            className={cn("dropzone", drag && "dropzone--active")}
+            className={cn("tm-drop", drag && "tm-drop--active")}
             role="button"
             tabIndex={0}
             onClick={onPick}
           >
-            <div className="dropzone__row">
-              <div className="dropzone__row">
-                <div className="dropzone__icon">DOCX</div>
-                <div className="dropzone__copy">
-                  <div className="dropzone__title">Arraste o arquivo aqui</div>
-                  <div className="dropzone__hint">ou clique para selecionar</div>
+            <div className="tm-drop__row">
+              <div className="tm-drop__left">
+                <div className="tm-drop__icon">DOCX</div>
+                <div>
+                  <div className="tm-drop__title">Arraste seu DOCX aqui</div>
+                  <div className="tm-drop__hint">ou clique para selecionar · Max: 20MB</div>
                 </div>
               </div>
-              <div className="dropzone__hint">Max. recomendado: 20MB</div>
             </div>
           </div>
 
           <input ref={inputRef} type="file" accept=".docx" hidden onChange={onInputChange} />
 
-          <div className="actions" style={{ marginTop: "14px" }}>
-            <button type="button" onClick={processDoc} disabled={!canProcess} className="btn btn--primary">
-              {phase === "work" ? <Loader2 size={16} className="spin" /> : <FileText size={16} />}
-              Processar documento
+          <div className="tm-actions" style={{ marginTop: "16px" }}>
+            <button type="button" onClick={processDoc} disabled={!canProcess} className="tm-btn tm-btn--primary">
+              {phase === "work" ? <Loader2 size={16} className="tm-spin" /> : <FileText size={16} />}
+              Extrair Itens
             </button>
-            <button type="button" onClick={onPick} disabled={phase === "work"} className="btn btn--outline">
+            <button type="button" onClick={onPick} disabled={phase === "work"} className="tm-btn tm-btn--outline">
               <CloudUpload size={16} />
-              Selecionar outro
+              Novo Arquivo
             </button>
           </div>
 
-          <div className="status" style={{ marginTop: "14px" }}>
-            <div className="status__top">
-              <span>{statusText}</span>
-              <span className="status__file">{file?.name ?? "(nenhum)"}</span>
+          {file && (
+            <div className="tm-status" style={{ marginTop: "14px" }}>
+              <div className="tm-status__top">
+                <span>{statusText}</span>
+                <span className="tm-status__file">{file.name}</span>
+              </div>
+              <div className="tm-status__lines">
+                {lines.map((l, i) => (
+                  <span key={i}>{l}</span>
+                ))}
+              </div>
             </div>
-            <div className="status__lines">
-              {lines.map((l, i) => (
-                <span key={i}>{l}</span>
-              ))}
-            </div>
-          </div>
+          )}
         </Section>
 
-        {phase === "ok" ? (
-          <Section title="Resultado" desc="Pronto para download.">
-            <div className="status__top" style={{ marginBottom: "10px" }}>
-              <span>Extracao concluida com sucesso.</span>
-              <span className="status__file">{fmtInt(items.length)} itens</span>
-            </div>
-            <div className="actions">
-              <button type="button" onClick={downloadBruto} disabled={!items.length} className="btn btn--primary">
-                <Download size={16} />
-                Baixar Excel bruto
-              </button>
-              <button type="button" onClick={downloadLog} disabled={!logText} className="btn btn--outline">
-                <Download size={16} />
-                Baixar Log
-              </button>
-            </div>
-          </Section>
-        ) : null}
-
+        {/* RESULTADO - Só aparece quando concluído */}
         <AnimatePresence>
-          {phase === "ok" && items.length > 0 ? (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
+          {phase === "ok" && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.3 }}
+            >
               <Section
-                title="3) Somar itens iguais"
-                desc={
-                  <>
-                    Gera uma planilha consolidada somando <b>Quantidade</b> para itens repetidos.
-                  </>
-                }
-                right={
-                  <Badge kind={aggBadge.kind} icon={aggBadge.icon}>
-                    {aggPhase === "idle" ? "Pronto" : aggPhase === "work" ? "Somando" : aggPhase === "ok" ? "Concluido" : "Erro"}
-                  </Badge>
-                }
+                title="Resumo da Extração"
+                desc={`${fmtInt(items.length)} itens encontrados e prontos para download`}
               >
-                <div className="panel__desc">Regra de chave:</div>
-                <div className="rule-grid">
-                  {[
-                    { v: "code_desc", label: "Codigo + Descricao" },
-                    { v: "code_only", label: "Apenas Codigo" },
-                    { v: "desc_only", label: "Apenas Descricao" },
-                  ].map((opt) => (
-                    <label key={opt.v} className="rule-card">
-                      <input
-                        type="radio"
-                        name="rule"
-                        value={opt.v}
-                        checked={aggRule === opt.v}
-                        onChange={() => setAggRule(opt.v)}
-                      />
-                      {opt.label}
-                    </label>
-                  ))}
+                <div className="tm-stats">
+                  <StatCard label="Itens extraídos" value={fmtInt(items.length)} />
+                  <StatCard label="Tabelas processadas" value={meta ? `${meta.itens_tables}/${meta.tables_total}` : "-"} />
                 </div>
 
-                <div className="actions" style={{ marginTop: "14px" }}>
-                  <button type="button" onClick={doAggregate} disabled={!canAggregate} className="btn btn--primary">
-                    {aggPhase === "work" ? <Loader2 size={16} className="spin" /> : <Sigma size={16} />}
-                    Gerar planilha somada
-                  </button>
-                  <button
-                    type="button"
-                    onClick={downloadSomado}
-                    disabled={aggPhase !== "ok" || aggItems.length === 0}
-                    className="btn btn--outline"
-                  >
+                <div className="tm-actions" style={{ marginTop: "16px" }}>
+                  <button type="button" onClick={downloadBruto} className="tm-btn tm-btn--primary">
                     <Download size={16} />
-                    Baixar Excel consolidado
+                    Baixar Excel
+                  </button>
+                  <button type="button" onClick={downloadLog} disabled={!logText} className="tm-btn tm-btn--outline">
+                    <Download size={16} />
+                    Baixar Log
                   </button>
                 </div>
+              </Section>
 
-                <div className="status" style={{ marginTop: "14px" }}>
-                  <div className="status__top">
-                    <span>{aggText}</span>
-                  </div>
-                  <div className="status__lines">
-                    {aggLines.map((l, i) => (
-                      <span key={i}>{l}</span>
+              {/* CONSOLIDAÇÃO */}
+              {items.length > 0 && (
+                <Section
+                  title="Consolidar Itens Repetidos"
+                  desc="Agrupe itens iguais e some as quantidades"
+                  right={
+                    <Badge kind={aggBadge.kind} icon={aggBadge.icon}>
+                      {aggPhase === "idle" ? "Pronto" : aggPhase === "work" ? "Somando" : aggPhase === "ok" ? "Concluído" : "Erro"}
+                    </Badge>
+                  }
+                >
+                  <div className="tm-panel__desc" style={{ marginBottom: "12px" }}>Regra de agrupamento:</div>
+                  <div className="tm-rule-grid">
+                    {[
+                      { v: "code_desc", label: "Código + Descrição" },
+                      { v: "code_only", label: "Apenas Código" },
+                      { v: "desc_only", label: "Apenas Descrição" },
+                    ].map((opt) => (
+                      <label key={opt.v} className={cn("tm-rule", aggRule === opt.v && "tm-rule--active")}>
+                        <input
+                          type="radio"
+                          name="rule"
+                          value={opt.v}
+                          checked={aggRule === opt.v}
+                          onChange={() => setAggRule(opt.v)}
+                        />
+                        {opt.label}
+                      </label>
                     ))}
                   </div>
 
-                  {aggPhase === "ok" && aggItems.length ? (
-                    <div className="panel" style={{ marginTop: "12px", padding: "14px" }}>
-                      <div className="panel__title" style={{ fontSize: "12px" }}>
-                        Previa do consolidado (8 primeiros)
+                  <div className="tm-actions" style={{ marginTop: "16px" }}>
+                    <button type="button" onClick={doAggregate} disabled={!canAggregate} className="tm-btn tm-btn--primary">
+                      {aggPhase === "work" ? <Loader2 size={16} className="tm-spin" /> : <Sigma size={16} />}
+                      Agrupar e Baixar
+                    </button>
+                    {aggPhase === "ok" && (
+                      <button
+                        type="button"
+                        onClick={downloadSomado}
+                        disabled={aggItems.length === 0}
+                        className="tm-btn tm-btn--outline"
+                      >
+                        <Download size={16} />
+                        Baixar Consolidado
+                      </button>
+                    )}
+                  </div>
+
+                  {aggPhase !== "idle" && (
+                    <div className="tm-status" style={{ marginTop: "14px" }}>
+                      <div className="tm-status__top">
+                        <span>{aggText}</span>
                       </div>
-                      <div className="preview" style={{ marginTop: "10px" }}>
-                        {aggItems.slice(0, 8).map((x, idx) => (
-                          <div key={idx} className="preview__item">
-                            <div className="preview__meta">
-                              <div className="preview__code">{x.codigo || "(sem codigo)"}</div>
-                              <div className="preview__desc">{x.descricao || "(sem descricao)"}</div>
+                      <div className="tm-status__lines">
+                        {aggLines.map((l, i) => (
+                          <span key={i}>{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {aggPhase === "ok" && aggItems.length > 0 && (
+                    <div style={{ marginTop: "16px" }}>
+                      <div className="tm-mini-title" style={{ marginBottom: "8px" }}>
+                        Prévia dos Resultados (primeiros 5)
+                      </div>
+                      <div className="tm-preview">
+                        {aggItems.slice(0, 5).map((x, idx) => (
+                          <div key={idx} className="tm-preview__item">
+                            <div className="tm-preview__meta">
+                              <div className="tm-preview__code">{x.codigo || "(sem código)"}</div>
+                              <div className="tm-preview__desc">{x.descricao || "(sem descrição)"}</div>
                             </div>
-                            <div className="preview__qty">{fmtQty(x.quantidade)}</div>
+                            <div className="tm-preview__qty">{fmtQty(x.quantidade)}</div>
                           </div>
                         ))}
                       </div>
                     </div>
-                  ) : null}
-                </div>
-              </Section>
+                  )}
+                </Section>
+              )}
             </motion.div>
-          ) : null}
+          )}
         </AnimatePresence>
 
-        <details className="panel">
-          <summary className="panel__title">Detalhes tecnicos</summary>
-          <Section title="2) Resumo" desc="Metricas do processamento e do consolidado (quando gerado).">
-            <div className="stats">
-              <StatCard label="Itens extraidos" value={fmtInt(items.length)} />
-              <StatCard
-                label="Itens somados"
-                value={fmtInt(aggItems.length)}
-                sub={aggPhase === "ok" ? `Regra: ${keyLabel}` : "-"}
-              />
-              <div className="stats__wide">
-                <StatCard label="Tabelas / Itens" value={meta ? `${meta.tables_total} / ${meta.itens_tables}` : "-"} />
-                <StatCard label="Ignoradas" value={meta ? fmtInt(meta.rows_ignored) : "-"} />
-              </div>
-            </div>
-          </Section>
-
-          <AnimatePresence>
-            {phase === "ok" && items.length ? (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
-                <Section
-                  title="4) Previa dos itens extraidos"
-                  desc="Mostra os 10 primeiros itens extraidos para conferencia rapida."
-                >
-                  <div className="status__top" style={{ marginBottom: "10px" }}>
-                    <span className="panel__title" style={{ fontSize: "12px" }}>
-                      Primeiros 10
-                    </span>
-                    <span className="status__file">{fmtInt(items.length)} linhas</span>
-                  </div>
-
-                  <div className="preview">
-                    {items.slice(0, 10).map((it, idx) => (
-                      <div key={idx} className="preview__item">
-                        <div className="preview__meta">
-                          <div className="preview__code">{it.codigo}</div>
-                          <div className="preview__desc">{it.descricao || "(sem descricao)"}</div>
-                          <div className="preview__origin">origem: {it.origem}</div>
-                        </div>
-                        <div className="preview__qty">{it.quantidade_raw}</div>
-                      </div>
-                    ))}
-                  </div>
-                </Section>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
-          <Section title="5) Regras e privacidade" desc="Referencia rapida das regras de extracao e garantia de processamento local.">
-            <div className="info-grid">
-              <div className="info-card">
-                <div className="info-card__title">Regras de extracao</div>
-                <ul>
-                  <li>Busca tabelas com cabecalho "Itens" na 1a linha.</li>
-                  <li>Coluna 1: Codigo (aceita 17.4 / 13.12 etc). Ignora #N/D.</li>
-                  <li>Coluna 2: Descricao.</li>
-                  <li>Quantidade: prefere 3a coluna; fallback por numero na linha.</li>
-                  <li>Exporta Excel (.xlsx) e Log (.txt).</li>
-                </ul>
-              </div>
-
-              <div className="info-card">
-                <div className="info-card__title">Privacidade</div>
-                <p className="panel__desc">
-                  O processamento acontece no seu navegador. Nenhum arquivo e enviado para servidor.
-                </p>
-              </div>
-            </div>
-          </Section>
-        </details>
+        <footer className="tm-footer">
+          TM Sempre Tecnologia · Extrator DOCX v1.4 · Ocean Breeze Design
+        </footer>
       </main>
-
-      <footer className="footer">TM Sempre Tecnologia - Extrator DOCX - v1.3</footer>
     </div>
   );
 }

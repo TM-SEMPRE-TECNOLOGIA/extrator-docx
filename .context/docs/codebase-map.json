@@ -1,0 +1,581 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-23T09:01:38.277Z",
+  "stack": {
+    "primaryLanguage": "javascript",
+    "languages": [
+      "javascript",
+      "python"
+    ],
+    "frameworks": [],
+    "buildTools": [
+      "vite"
+    ],
+    "testFrameworks": [],
+    "packageManager": "npm",
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": false
+  },
+  "structure": {
+    "totalFiles": 46,
+    "topDirectories": [
+      {
+        "name": "Agents_design-v2",
+        "fileCount": 7
+      },
+      {
+        "name": "Agents_design-v3",
+        "fileCount": 7
+      },
+      {
+        "name": "eslint.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "exemplo do gpt",
+        "fileCount": 17
+      },
+      {
+        "name": "extrair_itens_docx.py",
+        "fileCount": 1
+      },
+      {
+        "name": "index.html",
+        "fileCount": 1
+      },
+      {
+        "name": "package-lock.json",
+        "fileCount": 1
+      },
+      {
+        "name": "package.json",
+        "fileCount": 1
+      },
+      {
+        "name": "planejamento_design_v3.md",
+        "fileCount": 1
+      },
+      {
+        "name": "progresso.md",
+        "fileCount": 1
+      },
+      {
+        "name": "public",
+        "fileCount": 1
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "redesign_executado.md",
+        "fileCount": 1
+      },
+      {
+        "name": "rodar.bat",
+        "fileCount": 1
+      },
+      {
+        "name": "src",
+        "fileCount": 3
+      },
+      {
+        "name": "vite.config.js",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".md",
+        "count": 19
+      },
+      {
+        "extension": ".html",
+        "count": 11
+      },
+      {
+        "extension": ".jsx",
+        "count": 6
+      },
+      {
+        "extension": ".js",
+        "count": 3
+      },
+      {
+        "extension": ".json",
+        "count": 2
+      },
+      {
+        "extension": ".css",
+        "count": 2
+      },
+      {
+        "extension": ".bat",
+        "count": 1
+      },
+      {
+        "extension": ".py",
+        "count": 1
+      },
+      {
+        "extension": ".svg",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "exemplo do gpt\\ocean-breeze-pages\\assets"
+        ],
+        "symbolCount": 5,
+        "dependsOn": []
+      }
+    ],
+    "patterns": [],
+    "entryPoints": [
+      "exemplo do gpt\\ocean-breeze-pages\\assets\\app.js",
+      "src\\main.jsx"
+    ]
+  },
+  "symbols": {
+    "classes": [],
+    "interfaces": [],
+    "functions": [
+      {
+        "name": "consolidate_rows",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 156,
+        "exported": true
+      },
+      {
+        "name": "extract_code_qty",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 57,
+        "exported": true
+      },
+      {
+        "name": "is_itens_table",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 32,
+        "exported": true
+      },
+      {
+        "name": "norm",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "parse_pt_br_float",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 146,
+        "exported": true
+      },
+      {
+        "name": "pick_quantity_from_row",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 40,
+        "exported": true
+      },
+      {
+        "name": "run_gui",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 220,
+        "exported": true
+      },
+      {
+        "name": "save_log",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 184,
+        "exported": true
+      },
+      {
+        "name": "save_xlsx",
+        "kind": "function",
+        "file": "extrair_itens_docx.py",
+        "line": 106,
+        "exported": true
+      },
+      {
+        "name": "aggregateItems",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 288,
+        "exported": false
+      },
+      {
+        "name": "aggregateItems",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 284,
+        "exported": false
+      },
+      {
+        "name": "aggregateItems",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 285,
+        "exported": false
+      },
+      {
+        "name": "aggregateItems",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 288,
+        "exported": false
+      },
+      {
+        "name": "aggregateItems",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 284,
+        "exported": false
+      },
+      {
+        "name": "Badge",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 331,
+        "exported": false
+      },
+      {
+        "name": "Badge",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 318,
+        "exported": false
+      },
+      {
+        "name": "Badge",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 319,
+        "exported": false
+      },
+      {
+        "name": "Badge",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 331,
+        "exported": false
+      },
+      {
+        "name": "Badge",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 318,
+        "exported": false
+      },
+      {
+        "name": "buildLogText",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 150,
+        "exported": false
+      },
+      {
+        "name": "buildLogText",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 146,
+        "exported": false
+      },
+      {
+        "name": "buildLogText",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 146,
+        "exported": false
+      },
+      {
+        "name": "buildLogText",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 150,
+        "exported": false
+      },
+      {
+        "name": "buildLogText",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 146,
+        "exported": false
+      },
+      {
+        "name": "buildXlsx",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 125,
+        "exported": false
+      },
+      {
+        "name": "buildXlsx",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 121,
+        "exported": false
+      },
+      {
+        "name": "buildXlsx",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 121,
+        "exported": false
+      },
+      {
+        "name": "buildXlsx",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 125,
+        "exported": false
+      },
+      {
+        "name": "buildXlsx",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 121,
+        "exported": false
+      },
+      {
+        "name": "Chip",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 322,
+        "exported": false
+      },
+      {
+        "name": "Chip",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 322,
+        "exported": false
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 31,
+        "exported": false
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 27,
+        "exported": false
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 27,
+        "exported": false
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 31,
+        "exported": false
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 27,
+        "exported": false
+      },
+      {
+        "name": "extractItemsFromDocx",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 205,
+        "exported": false
+      },
+      {
+        "name": "extractItemsFromDocx",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 201,
+        "exported": false
+      },
+      {
+        "name": "extractItemsFromDocx",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 202,
+        "exported": false
+      },
+      {
+        "name": "extractItemsFromDocx",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 205,
+        "exported": false
+      },
+      {
+        "name": "extractItemsFromDocx",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 201,
+        "exported": false
+      },
+      {
+        "name": "fallbackDownload",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 84,
+        "exported": false
+      },
+      {
+        "name": "fallbackDownload",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 80,
+        "exported": false
+      },
+      {
+        "name": "fallbackDownload",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 80,
+        "exported": false
+      },
+      {
+        "name": "fallbackDownload",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 84,
+        "exported": false
+      },
+      {
+        "name": "fallbackDownload",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 80,
+        "exported": false
+      },
+      {
+        "name": "fmtInt",
+        "kind": "function",
+        "file": "exemplo do gpt\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 39,
+        "exported": false
+      },
+      {
+        "name": "fmtInt",
+        "kind": "function",
+        "file": "exemplo do gpt\\app_extrator_docx_tm_ocean_breeze.jsx",
+        "line": 35,
+        "exported": false
+      },
+      {
+        "name": "fmtInt",
+        "kind": "function",
+        "file": "src\\App.jsx",
+        "line": 35,
+        "exported": false
+      },
+      {
+        "name": "fmtInt",
+        "kind": "function",
+        "file": "exemplo do gpt\\Nova pasta\\tm_docx_extrator_whats_app_design_system.jsx",
+        "line": 39,
+        "exported": false
+      }
+    ],
+    "types": [],
+    "enums": []
+  },
+  "publicAPI": [
+    {
+      "name": "consolidate_rows",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 156,
+      "exported": true
+    },
+    {
+      "name": "extract_code_qty",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 57,
+      "exported": true
+    },
+    {
+      "name": "is_itens_table",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 32,
+      "exported": true
+    },
+    {
+      "name": "norm",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 28,
+      "exported": true
+    },
+    {
+      "name": "parse_pt_br_float",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 146,
+      "exported": true
+    },
+    {
+      "name": "pick_quantity_from_row",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 40,
+      "exported": true
+    },
+    {
+      "name": "run_gui",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 220,
+      "exported": true
+    },
+    {
+      "name": "save_log",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 184,
+      "exported": true
+    },
+    {
+      "name": "save_xlsx",
+      "kind": "function",
+      "file": "extrair_itens_docx.py",
+      "line": 106,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "C:\\Users\\thiag\\extrator-docx\\src\\App.jsx",
+        "importedBy": 1
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 129,
+    "exportedSymbols": 9,
+    "analysisTimeMs": 79
+  }
+}

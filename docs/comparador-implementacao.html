@@ -1,0 +1,692 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guia de Implementacao — Comparador</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121822;
+      --card: #0f1620;
+      --stroke: rgba(255,255,255,.10);
+      --text: #e8eef6;
+      --muted: rgba(232,238,246,.72);
+      --accent: #5aa9ff;
+      --ok: #2ecc71;
+      --warn: #f1c40f;
+      --bad: #e74c3c;
+      --shadow: 0 12px 28px rgba(0,0,0,.28);
+      --shadow-soft: 0 6px 18px rgba(0,0,0,.2);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 12% -10%, rgba(90,169,255,.10), transparent 60%),
+                  radial-gradient(900px 500px at 88% 0%, rgba(46,204,113,.10), transparent 55%),
+                  var(--bg);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover { text-decoration: underline; }
+
+    .page {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 28px 26px 80px;
+    }
+
+    .hero {
+      padding: 24px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) , var(--panel);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 {
+      margin: 0 0 10px 0;
+      font-size: clamp(28px, 3.4vw, 34px);
+      letter-spacing: -0.4px;
+    }
+
+    .hero p {
+      margin: 6px 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+    }
+
+    .pill--stack { color: var(--accent); }
+    .pill--status { color: var(--ok); }
+    .pill--layer { color: var(--muted); }
+    .pill--risk { color: var(--warn); }
+
+    .card {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--stroke);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(255,255,255,.02);
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.2px;
+    }
+
+    .card-header p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .card-body { padding: 18px 20px 22px; }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .toc-grid a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.02);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .toc-grid a.active {
+      outline: 2px solid rgba(90,169,255,.5);
+      background: rgba(90,169,255,.08);
+    }
+
+    .path {
+      background: rgba(90,169,255,.10);
+      border: 1px solid rgba(90,169,255,.25);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .steps {
+      padding-left: 20px;
+      margin: 12px 0 16px;
+    }
+
+    .steps li { margin: 8px 0; }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .checklist li {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px dashed var(--stroke);
+      background: rgba(255,255,255,.02);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+    }
+
+    .checklist li::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 2px solid var(--accent);
+      margin-top: 2px;
+      flex: 0 0 auto;
+    }
+
+    .callout {
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      margin: 12px 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .callout strong { color: var(--text); }
+    .callout--tip { border-left: 4px solid var(--ok); }
+    .callout--warn { border-left: 4px solid var(--warn); }
+    .callout--arch { border-left: 4px solid var(--accent); }
+    .callout--sec { border-left: 4px solid var(--bad); }
+
+    .meta-line {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .code-block {
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0b1220;
+      margin: 12px 0;
+    }
+
+    .code-block__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--stroke);
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,.02);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 12px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .copy-btn {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--stroke);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover { border-color: rgba(90,169,255,.6); }
+
+    .back-to-top {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: var(--shadow-soft);
+      display: none;
+    }
+
+    .back-to-top.show { display: inline-flex; }
+
+    @media (max-width: 720px) {
+      .page { padding: 22px 18px 80px; }
+      .card-header h2 { font-size: 18px; }
+      .hero h1 { font-size: 28px; }
+    }
+
+    @media print {
+      body { background: #fff; color: #000; }
+      .hero, .card, .code-block { box-shadow: none; }
+      .copy-btn, .back-to-top { display: none !important; }
+      .pill { border-color: #ccc; color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="topo">
+    <header class="hero">
+      <h1>Guia de Implementacao — Comparador</h1>
+      <p>Gerado em: 06/02/2026 02:22</p>
+      <p>Documento baseado exclusivamente nos arquivos presentes no repositorio.</p>
+      <div class="badges">
+        <span class="pill pill--stack">Stack: React</span>
+        <span class="pill pill--stack">Stack: Vite</span>
+        <span class="pill pill--stack">Stack: JavaScript</span>
+        <span class="pill pill--stack">Stack: Python</span>
+        <span class="pill pill--stack">Stack: JSZip</span>
+        <span class="pill pill--stack">Stack: XLSX</span>
+        <span class="pill pill--stack">Stack: python-docx</span>
+        <span class="pill pill--stack">Stack: openpyxl</span>
+        <span class="pill pill--stack">Stack: framer-motion</span>
+        <span class="pill pill--stack">Stack: lucide-react</span>
+        <span class="pill pill--status">Status: Extracao + Consolidacao implementadas</span>
+        <span class="pill pill--layer">Camada: Web (React)</span>
+        <span class="pill pill--layer">Camada: Script Python</span>
+        <span class="pill pill--risk">Risco: Normalizacao Unicode</span>
+      </div>
+      <p class="meta-line">Evidencias principais: <code class="path">README.md</code> <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code> <code class="path">package.json</code></p>
+    </header>
+
+    <section class="card" id="sumario">
+      <div class="card-header">
+        <h2>Sumario</h2>
+        <p>Navegacao rapida pelas secoes do guia.</p>
+      </div>
+      <div class="card-body">
+        <nav class="toc-grid">
+          <a href="#visao-geral">1. Visao Geral do Comparador</a>
+          <a href="#stack-arquitetura">2. Stack e Arquitetura</a>
+          <a href="#fluxo">3. Fluxo de Funcionamento</a>
+          <a href="#componentes">4. Componentes Principais</a>
+          <a href="#passo-a-passo">5. Passo a Passo de Implementacao</a>
+          <a href="#extensao">6. Como Estender o Comparador</a>
+          <a href="#riscos">7. Riscos Reais Identificados</a>
+          <a href="#faq">8. FAQ tecnico</a>
+          <a href="#arquivos-chave">9. Arquivos-chave analisados</a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="card" id="visao-geral">
+      <div class="card-header">
+        <h2>1. Visao Geral do Comparador</h2>
+        <p>O repositorio implementa extracao de itens de DOCX e consolidacao de resultados.</p>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li>O produto principal e um extrator de itens de tabelas em arquivos .docx com interface web em React/Vite e processamento local no navegador. <code class="path">README.md</code> <code class="path">src/App.jsx</code></li>
+          <li>Existe um fluxo alternativo via script local em Python com GUI para selecionar o DOCX, gerar Excel e log. <code class="path">extrair_itens_docx.py</code></li>
+          <li>O termo "comparador" nao aparece no codigo, mas a funcionalidade mais proxima e a consolidacao/agrupamento de itens repetidos. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+
+        <div class="callout callout--arch">
+          <strong>Nota de arquitetura:</strong> existem duas implementacoes da mesma logica central (web e Python), ambas filtrando tabelas com cabecalho "Itens" e gerando saidas em Excel/log. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code>
+        </div>
+
+        <ul class="checklist">
+          <li>Extracao de tabelas "Itens" a partir de DOCX. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Geracao de planilha Excel com itens extraidos. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Geracao de log textual da execucao. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Consolidacao/agrupamento de itens repetidos. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="stack-arquitetura">
+      <div class="card-header">
+        <h2>2. Stack e Arquitetura (pastas, entrypoints, camadas)</h2>
+        <p>Resumo de tecnologias e organizacao do repositorio.</p>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li>Frontend: React + Vite com entrada HTML em <code class="path">index.html</code> que aponta para <code class="path">src/main.jsx</code>. <code class="path">package.json</code> <code class="path">vite.config.js</code></li>
+          <li>Processamento no navegador: JSZip (leitura do DOCX), XLSX (geracao de planilhas), framer-motion e lucide-react para UI. <code class="path">package.json</code> <code class="path">src/App.jsx</code></li>
+          <li>Script local: Python com python-docx, openpyxl e Tkinter. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Camadas e pastas relevantes: UI e logica principal em <code class="path">src/</code>; assets em <code class="path">public/</code>; build em <code class="path">dist/</code>; referencias de design em <code class="path">exemplo do gpt/</code>; guias de design em <code class="path">Agents_design-v2/</code> e <code class="path">Agents_design-v3/</code>. <code class="path">README.md</code></li>
+        </ol>
+
+        <ul class="checklist">
+          <li>Entrypoint web: <code class="path">index.html</code> -> <code class="path">src/main.jsx</code> -> <code class="path">src/App.jsx</code>.</li>
+          <li>Entrypoint Python: <code class="path">extrair_itens_docx.py</code> (tambem via <code class="path">rodar.bat</code>).</li>
+          <li>Configuracao Vite: <code class="path">vite.config.js</code>.</li>
+          <li>Linting React/JS: <code class="path">eslint.config.js</code>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="fluxo">
+      <div class="card-header">
+        <h2>3. Fluxo de Funcionamento (entrada -> processamento -> saida)</h2>
+        <p>Fluxos detalhados para web e Python.</p>
+      </div>
+      <div class="card-body">
+        <h3>3.1 Fluxo Web (React)</h3>
+        <ol class="steps">
+          <li>Entrada: usuario seleciona um arquivo .docx e o app valida a extensao. <code class="path">src/App.jsx</code></li>
+          <li>Processamento: o DOCX e aberto via JSZip, o XML e parseado, as tabelas com cabecalho "Itens" sao filtradas e as linhas validas sao extraidas. <code class="path">src/App.jsx</code></li>
+          <li>Saida: planilha Excel e log sao gerados e disponibilizados para download; opcionalmente ocorre consolidacao por regra. <code class="path">src/App.jsx</code></li>
+        </ol>
+
+        <ul class="checklist">
+          <li>Leitura do DOCX pelo navegador. <code class="path">src/App.jsx</code></li>
+          <li>Regra de validacao de codigo e quantidade. <code class="path">src/App.jsx</code></li>
+          <li>Downloads (Excel e log). <code class="path">src/App.jsx</code></li>
+        </ul>
+
+        <h3>3.2 Fluxo Python (GUI)</h3>
+        <ol class="steps">
+          <li>Entrada: selecao do DOCX e do caminho de saida via Tkinter. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Processamento: leitura das tabelas com python-docx, filtro de cabecalho "Itens" e extracao de codigo/quantidade. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Saida: geracao de Excel com abas "Itens" e "Consolidado" e log em arquivo texto. <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+
+        <ul class="checklist">
+          <li>Planilha principal com itens extraidos. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Planilha consolidada por codigo. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Log detalhado com linhas ignoradas. <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="componentes">
+      <div class="card-header">
+        <h2>4. Componentes Principais e Responsabilidades</h2>
+        <p>Funcoes e modulos responsaveis pelo "comparador" (consolidacao).</p>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li><strong>extractItemsFromDocx</strong> faz a leitura do DOCX no navegador e extrai itens validos. <code class="path">src/App.jsx</code></li>
+          <li><strong>aggregateItems</strong> consolida itens por regra (codigo, descricao, ou ambos). <code class="path">src/App.jsx</code></li>
+          <li><strong>buildXlsx</strong> cria a planilha Excel e dispara o download. <code class="path">src/App.jsx</code></li>
+          <li><strong>buildLogText</strong> gera o log de execucao. <code class="path">src/App.jsx</code></li>
+          <li><strong>extract_code_qty</strong>, <strong>consolidate_rows</strong> e <strong>save_xlsx</strong> implementam o fluxo equivalente no Python. <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+
+        <div class="code-block">
+          <div class="code-block__head">
+            <span>Exemplo de consolidacao (web)</span>
+            <button class="copy-btn" type="button">Copiar</button>
+          </div>
+          <pre><code>const ag = aggregateItems(items, aggRule);
+setAggItems(ag);
+setAggText("Consolidacao concluida!");</code></pre>
+        </div>
+        <p class="meta-line">Trecho em <code class="path">src/App.jsx</code>.</p>
+
+        <div class="code-block">
+          <div class="code-block__head">
+            <span>Exemplo de consolidacao (Python)</span>
+            <button class="copy-btn" type="button">Copiar</button>
+          </div>
+          <pre><code>consolidated = consolidate_rows(rows)
+ws_cons.append(["Codigo", "Quantidade Total"])
+for code, qty in consolidated:
+    ws_cons.append([code, qty])</code></pre>
+        </div>
+        <p class="meta-line">Trecho em <code class="path">extrair_itens_docx.py</code>.</p>
+
+        <ul class="checklist">
+          <li>UI e estados de processamento. <code class="path">src/App.jsx</code> <code class="path">src/index.css</code></li>
+          <li>Logica de extracao no navegador. <code class="path">src/App.jsx</code></li>
+          <li>Logica de extracao no Python. <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="passo-a-passo">
+      <div class="card-header">
+        <h2>5. Passo a Passo de Implementacao</h2>
+        <p>Passos reproduziveis para executar o comparador (consolidacao).</p>
+      </div>
+      <div class="card-body">
+        <h3>5.1 Pre-requisitos</h3>
+        <ol class="steps">
+          <li>Para o fluxo web, o repositorio usa npm para instalar dependencias e rodar o servidor. <code class="path">README.md</code> <code class="path">package.json</code></li>
+          <li>Para o fluxo Python, e necessario instalar python-docx e openpyxl conforme indicado no script. <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+        <ul class="checklist">
+          <li>Dependencias web instaladas via npm. <code class="path">README.md</code></li>
+          <li>Dependencias Python instaladas via pip. <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+
+        <h3>5.2 Setup local</h3>
+        <ol class="steps">
+          <li>Instale as dependencias web com <code class="path">README.md</code>.</li>
+          <li>Rode o servidor Vite para a interface web. <code class="path">README.md</code> <code class="path">package.json</code></li>
+        </ol>
+        <div class="code-block">
+          <div class="code-block__head">
+            <span>Comandos do README</span>
+            <button class="copy-btn" type="button">Copiar</button>
+          </div>
+          <pre><code>npm install
+npm run dev</code></pre>
+        </div>
+        <ul class="checklist">
+          <li>Servidor iniciado via Vite. <code class="path">README.md</code> <code class="path">package.json</code></li>
+        </ul>
+
+        <h3>5.3 Configuracao</h3>
+        <ol class="steps">
+          <li>O repositorio nao apresenta arquivos de configuracao especificos para o comparador alem do codigo-fonte. <code class="path">README.md</code> <code class="path">src/App.jsx</code></li>
+        </ol>
+        <ul class="checklist">
+          <li>Entradas e regras estao definidas no codigo. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+
+        <h3>5.4 Execucao do comparador</h3>
+        <ol class="steps">
+          <li>No web, selecione o .docx e clique em "Extrair Itens". <code class="path">src/App.jsx</code></li>
+          <li>No Python, execute o script ou o atalho e selecione o arquivo e o destino. <code class="path">extrair_itens_docx.py</code> <code class="path">rodar.bat</code></li>
+          <li>Use a opcao de consolidacao para agrupar itens repetidos conforme regra. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+        <ul class="checklist">
+          <li>Planilha bruta gerada. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Planilha consolidada gerada. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Log salvo para auditoria. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+
+        <h3>5.5 Testes</h3>
+        <ol class="steps">
+          <li>O <code class="path">package.json</code> nao define script <code class="path">test</code>, portanto nao ha suite de testes configurada via npm.</li>
+          <li>O guia de estrategia de testes esta presente como scaffold nao preenchido. <code class="path">.context/docs/testing-strategy.md</code></li>
+        </ol>
+        <ul class="checklist">
+          <li>Validacao manual sugerida via uso do app. <code class="path">README.md</code></li>
+        </ul>
+
+        <h3>5.6 Deploy</h3>
+        <ol class="steps">
+          <li>Nenhum script de deploy foi definido no <code class="path">package.json</code>.</li>
+          <li>A pasta <code class="path">dist/</code> indica build local gerado pelo Vite, sem instrucao de publicacao. <code class="path">dist/</code> <code class="path">vite.config.js</code></li>
+        </ol>
+        <ul class="checklist">
+          <li>Build local disponivel para entrega manual. <code class="path">dist/</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="extensao">
+      <div class="card-header">
+        <h2>6. Como Estender o Comparador (novos criterios/fontes/regras)</h2>
+        <p>Locais exatos no codigo onde as regras podem ser alteradas.</p>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li>Para novas regras de agrupamento no web, ajuste <strong>aggregateItems</strong> e a lista de opcoes de regra. <code class="path">src/App.jsx</code></li>
+          <li>Para novas regras no Python, altere <strong>consolidate_rows</strong> e como a chave e calculada. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Para novas fontes ou criterios de identificacao de tabela, ajuste o filtro de cabecalho "Itens". <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Para alterar leitura de quantidade, modifique <strong>pickQuantityFromRow</strong> / <strong>pick_quantity_from_row</strong>. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+
+        <div class="callout callout--tip">
+          <strong>Dica:</strong> mantenha as regras alinhadas entre o web e o Python para resultados consistentes. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code>
+        </div>
+
+        <ul class="checklist">
+          <li>Atualizar UI das regras no web. <code class="path">src/App.jsx</code></li>
+          <li>Atualizar logica de consolidacao no Python. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Revisar logs para validar novas regras. <code class="path">log_summary.txt</code> <code class="path">output.txt</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="riscos">
+      <div class="card-header">
+        <h2>7. Riscos Reais Identificados e Mitigacoes</h2>
+        <p>Riscos baseados em artefatos reais do repositorio.</p>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li>Risco: consolidacao gera itens duplicados quando ha variacao de caracteres Unicode na descricao (ex.: hifen diferente), reproduzido em logs e script de reproducao. <code class="path">log_summary.txt</code> <code class="path">output.txt</code> <code class="path">reproduce_issue.js</code> <code class="path">src/App.jsx</code></li>
+          <li>Mitigacao sugerida: normalizar Unicode antes de agrupar (ex.: remover variacoes de hifen). <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Risco: apenas tabelas cujo cabecalho e exatamente "Itens" sao processadas, o que pode ignorar variacoes de nome. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Mitigacao sugerida: ampliar a regra de deteccao para aceitar sinonimos ou colunas. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Risco: o texto "Max: 20MB" esta na UI, mas nao ha validacao de tamanho de arquivo no codigo. <code class="path">src/App.jsx</code></li>
+          <li>Mitigacao sugerida: adicionar validacao de tamanho antes de processar. <code class="path">src/App.jsx</code></li>
+          <li>Risco: o script Python depende de GUI (Tkinter) e pode falhar em ambientes sem interface grafica. <code class="path">extrair_itens_docx.py</code></li>
+          <li>Mitigacao sugerida: criar modo CLI sem GUI. <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+
+        <div class="callout callout--warn">
+          <strong>Atencao:</strong> o risco de duplicidade em consolidacao ja foi reproduzido, portanto merece prioridade. <code class="path">log_summary.txt</code> <code class="path">output.txt</code>
+        </div>
+
+        <div class="callout callout--sec">
+          <strong>Seguranca:</strong> o fluxo web processa arquivos localmente; nao ha referencias a envio de dados para servidor no codigo analisado. <code class="path">README.md</code> <code class="path">src/App.jsx</code>
+        </div>
+
+        <ul class="checklist">
+          <li>Normalizacao de texto antes de agrupar. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Expansao da regra de identificacao de tabelas. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li>Validacao de tamanho de arquivo no upload. <code class="path">src/App.jsx</code></li>
+          <li>Modo CLI para ambientes sem GUI. <code class="path">extrair_itens_docx.py</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="faq">
+      <div class="card-header">
+        <h2>8. FAQ tecnico</h2>
+        <p>Perguntas frequentes baseadas em arquivos reais.</p>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li><strong>Onde ajusto layout e estilos?</strong> Em <code class="path">src/App.jsx</code> (estrutura) e <code class="path">src/index.css</code> (estilos). <code class="path">README.md</code></li>
+          <li><strong>Como rodo a versao web?</strong> Use <code class="path">npm install</code> e <code class="path">npm run dev</code>. <code class="path">README.md</code></li>
+          <li><strong>Como rodo o script local?</strong> Execute <code class="path">extrair_itens_docx.py</code> ou <code class="path">rodar.bat</code>. <code class="path">README.md</code> <code class="path">rodar.bat</code></li>
+          <li><strong>Como ocorre a consolidacao?</strong> No web por <strong>aggregateItems</strong> e no Python por <strong>consolidate_rows</strong>. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+          <li><strong>Ha logs de execucao?</strong> Sim, o web gera texto via <strong>buildLogText</strong> e o Python grava arquivo _log.txt. <code class="path">src/App.jsx</code> <code class="path">extrair_itens_docx.py</code></li>
+        </ol>
+
+        <ul class="checklist">
+          <li>Entrypoint web e <code class="path">index.html</code>. <code class="path">index.html</code></li>
+          <li>Design system de referencia em <code class="path">exemplo do gpt/</code>. <code class="path">exemplo do gpt/ocean-breeze-pages/README.md</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="arquivos-chave">
+      <div class="card-header">
+        <h2>9. Arquivos-chave analisados</h2>
+        <p>Lista de evidencias consultadas neste guia.</p>
+      </div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li><code class="path">README.md</code></li>
+          <li><code class="path">src/App.jsx</code></li>
+          <li><code class="path">src/main.jsx</code></li>
+          <li><code class="path">src/index.css</code></li>
+          <li><code class="path">index.html</code></li>
+          <li><code class="path">package.json</code></li>
+          <li><code class="path">vite.config.js</code></li>
+          <li><code class="path">eslint.config.js</code></li>
+          <li><code class="path">extrair_itens_docx.py</code></li>
+          <li><code class="path">rodar.bat</code></li>
+          <li><code class="path">read_log.js</code></li>
+          <li><code class="path">reproduce_issue.js</code></li>
+          <li><code class="path">log_summary.txt</code></li>
+          <li><code class="path">output.txt</code></li>
+          <li><code class="path">public/tm_logo.svg</code></li>
+          <li><code class="path">dist/index.html</code></li>
+          <li><code class="path">planejamento_design_v3.md</code></li>
+          <li><code class="path">redesign_executado.md</code></li>
+          <li><code class="path">progresso.md</code></li>
+          <li><code class="path">.context/docs/README.md</code></li>
+          <li><code class="path">.context/docs/project-overview.md</code></li>
+          <li><code class="path">.context/docs/architecture.md</code></li>
+          <li><code class="path">.context/docs/development-workflow.md</code></li>
+          <li><code class="path">.context/docs/testing-strategy.md</code></li>
+          <li><code class="path">.context/docs/data-flow.md</code></li>
+          <li><code class="path">.context/docs/security.md</code></li>
+          <li><code class="path">.context/docs/tooling.md</code></li>
+          <li><code class="path">.context/docs/glossary.md</code></li>
+          <li><code class="path">.context/agents/README.md</code></li>
+          <li><code class="path">exemplo do gpt/ocean-breeze-pages/README.md</code></li>
+          <li><code class="path">Agents_design-v2/</code></li>
+          <li><code class="path">Agents_design-v3/</code></li>
+          <li><code class="path">RELATORIO FOTOGRAFICO - RESPLENDOR - LEVANTAMENTO PREVENTIVO.docx</code></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <button class="back-to-top" type="button" aria-label="Voltar ao topo">Voltar ao topo</button>
+
+  <script>
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const code = btn.closest('.code-block').querySelector('pre code');
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code.innerText);
+          btn.textContent = 'Copiado';
+          setTimeout(() => (btn.textContent = 'Copiar'), 1200);
+        } catch (e) {
+          btn.textContent = 'Falha';
+          setTimeout(() => (btn.textContent = 'Copiar'), 1200);
+        }
+      });
+    });
+
+    const backToTop = document.querySelector('.back-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) backToTop.classList.add('show');
+      else backToTop.classList.remove('show');
+    });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    const tocLinks = document.querySelectorAll('.toc-grid a');
+    const sections = Array.from(tocLinks).map((link) => document.querySelector(link.getAttribute('href')));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        tocLinks.forEach((l) => l.classList.remove('active'));
+        const active = document.querySelector(`.toc-grid a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    sections.forEach((section) => section && observer.observe(section));
+  </script>
+</body>
+</html>
+
+
+
