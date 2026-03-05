@@ -11,6 +11,8 @@ import {
   Sigma,
   Moon,
   Sun,
+  ClipboardList,
+  Table2,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
@@ -21,6 +23,9 @@ import JSZip from "jszip";
  */
 
 const CODE_RE = /^\s*\d+(?:\.\d+)?\s*$/;
+const ITEM_RE = /\(\s*I*TEM\s+([\d.]+)\s*\)/i;
+const TOTAL_UNIT_RE = /TOTAL\s*\(([^)]+)\)/i;
+const MEMORIAL_SECTION_RE = /MEMORIAL DE CÁLCULO E ITENS/i;
 
 /** @typedef {{ codigo: string; descricao: string; quantidade_raw: string; quantidade: number; origem?: string }} Item */
 
@@ -143,6 +148,218 @@ function buildXlsx(items, filenameBase) {
   });
 }
 
+function naturalKey(k) {
+  return k.split(/(\d+)/).map((s) => (/^\d+$/.test(s) ? Number(s) : s));
+}
+
+function naturalSort(a, b) {
+  const ka = naturalKey(a);
+  const kb = naturalKey(b);
+  for (let i = 0; i < Math.max(ka.length, kb.length); i++) {
+    const va = ka[i] ?? "";
+    const vb = kb[i] ?? "";
+    if (typeof va === "number" && typeof vb === "number") {
+      if (va !== vb) return va - vb;
+    } else {
+      const cmp = String(va).localeCompare(String(vb));
+      if (cmp !== 0) return cmp;
+    }
+  }
+  return 0;
+}
+
+function buildMemorialXlsx(items, meta, filenameBase) {
+  const wb = XLSX.utils.book_new();
+  const itemInfo = meta?.itemInfo ?? {};
+  const memorialsDoc = meta?.memorials ?? {};
+
+  const fmtPt = (val) =>
+    val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // --- Aba 1: Itens ---
+  const wsItens = XLSX.utils.aoa_to_sheet([
+    ["Codigo", "Quantidade"],
+    ...items.map((it) => [it.codigo, it.quantidade_raw]),
+  ]);
+  wsItens["!cols"] = [{ wch: 12 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+
+  // --- Aba 2: Consolidado ---
+  const consMap = new Map();
+  items.forEach((it) => {
+    const prev = consMap.get(it.codigo) ?? 0;
+    consMap.set(it.codigo, prev + (Number.isFinite(it.quantidade) ? it.quantidade : 0));
+  });
+  const consRows = Array.from(consMap.entries()).sort((a, b) => naturalSort(a[0], b[0]));
+  const wsCons = XLSX.utils.aoa_to_sheet([
+    ["Codigo", "Quantidade Total"],
+    ...consRows.map(([c, q]) => [c, fmtPt(q)]),
+  ]);
+  wsCons["!cols"] = [{ wch: 12 }, { wch: 18 }];
+  XLSX.utils.book_append_sheet(wb, wsCons, "Consolidado");
+
+  // --- Aba 3: Memorial Final ---
+  const hasDocMemorial = Object.keys(memorialsDoc).length > 0;
+
+  // Calcular Total real por código (usando Total das tabelas)
+  const realSums = {};
+  for (const [code, info] of Object.entries(itemInfo)) {
+    let total = 0;
+    for (const meas of info.measurements) {
+      if (meas.totalRow) {
+        total += parsePtNumber(meas.totalRow[meas.totalRow.length - 1]);
+      } else if (meas.dataRows.length) {
+        for (const dr of meas.dataRows) total += parsePtNumber(dr[dr.length - 1]);
+      }
+    }
+    realSums[code] = total;
+  }
+
+  // Fallback: somas brutas
+  const rawSums = {};
+  items.forEach((it) => {
+    rawSums[it.codigo] = (rawSums[it.codigo] ?? 0) + (Number.isFinite(it.quantidade) ? it.quantidade : 0);
+  });
+
+  const allCodes = [...new Set([...Object.keys(rawSums), ...Object.keys(itemInfo), ...Object.keys(memorialsDoc)])];
+  allCodes.sort(naturalSort);
+
+  const finalRows = [];
+  if (hasDocMemorial) {
+    finalRows.push(["Código", "Descrição", "Qtd Script", "Qtd Documento", "Unidade", "Status"]);
+  } else {
+    finalRows.push(["Código", "Descrição", "Quantidade Total", "Unidade"]);
+  }
+
+  for (const code of allCodes) {
+    const totalScript = realSums[code] ?? rawSums[code] ?? 0;
+    const info = itemInfo[code] ?? {};
+    const docMem = memorialsDoc[code];
+    const desc = info.desc ?? (docMem?.desc ?? "");
+    const unit = info.unit ?? (docMem?.unit ?? "");
+
+    if (hasDocMemorial) {
+      const qtyDocStr = docMem?.qtyDoc ?? "N/A";
+      const qtyDocVal = docMem ? parsePtNumber(qtyDocStr) : 0;
+      const diff = Math.abs(totalScript - qtyDocVal);
+      let status = diff < 0.01 ? "CONFERE" : "DIVERGENTE";
+      if (!docMem) status = "SEM MEMORIAL NO DOC";
+      finalRows.push([code, desc, fmtPt(totalScript), qtyDocStr, unit, status]);
+    } else {
+      finalRows.push([code, desc, fmtPt(totalScript), unit]);
+    }
+  }
+
+  const wsFinal = XLSX.utils.aoa_to_sheet(finalRows);
+  wsFinal["!cols"] = hasDocMemorial
+    ? [{ wch: 10 }, { wch: 60 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 14 }]
+    : [{ wch: 10 }, { wch: 60 }, { wch: 18 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, wsFinal, "Memorial Final");
+
+  // --- Abas 4+: MemCalc por Item ---
+  const sortedItems = Object.keys(itemInfo).sort(naturalSort);
+
+  for (const code of sortedItems) {
+    const info = itemInfo[code];
+    const { measurements } = info;
+    const colHeaders = info.colHeaders ?? [];
+    const nCols = colHeaders.length || 2;
+    const desc = info.desc ?? "";
+    const unit = info.unit ?? "?";
+
+    // Detectar multiplicadores
+    let hasSpecial = false;
+    for (const meas of measurements) {
+      if (meas.totalRow) {
+        const label = meas.totalRow[0].toLowerCase();
+        if (label !== "total" && label.includes("total")) hasSpecial = true;
+      }
+    }
+
+    const sheetName = `MemCalc_${code}`.slice(0, 31);
+    const aoa = [];
+
+    // Header com descrição + código
+    const headerRow = new Array(nCols).fill("");
+    headerRow[0] = `${desc} (ITEM ${code})`;
+    aoa.push(headerRow);
+
+    // Cabeçalhos de coluna
+    aoa.push(colHeaders.length ? colHeaders : ["REFERÊNCIA", `TOTAL (${unit})`]);
+
+    if (hasSpecial) {
+      let grandTotal = 0;
+      for (const meas of measurements) {
+        for (const dr of meas.dataRows) aoa.push(dr);
+        if (meas.subtotalRow) aoa.push(meas.subtotalRow);
+        if (meas.totalRow) {
+          aoa.push(meas.totalRow);
+          grandTotal += parsePtNumber(meas.totalRow[meas.totalRow.length - 1]);
+        } else if (meas.dataRows.length) {
+          for (const dr of meas.dataRows) grandTotal += parsePtNumber(dr[dr.length - 1]);
+        }
+      }
+      const tgRow = new Array(nCols).fill("");
+      tgRow[0] = "TOTAL GERAL";
+      tgRow[nCols - 1] = fmtPt(grandTotal);
+      aoa.push(tgRow);
+    } else {
+      let grandTotal = 0;
+      for (const meas of measurements) {
+        for (const dr of meas.dataRows) {
+          aoa.push(dr);
+          grandTotal += parsePtNumber(dr[dr.length - 1]);
+        }
+      }
+      // Subtotal
+      const subRow = new Array(nCols).fill("");
+      subRow[0] = "Subtotal";
+      if (nCols >= 4) {
+        let discountSum = 0;
+        for (const meas of measurements) {
+          for (const dr of meas.dataRows) {
+            if (dr.length >= 4) discountSum += parsePtNumber(dr[dr.length - 2]);
+          }
+        }
+        subRow[nCols - 2] = fmtPt(discountSum);
+      }
+      subRow[nCols - 1] = fmtPt(grandTotal);
+      aoa.push(subRow);
+
+      // Total (real)
+      let realTotal = 0;
+      for (const meas of measurements) {
+        if (meas.totalRow) {
+          realTotal += parsePtNumber(meas.totalRow[meas.totalRow.length - 1]);
+        } else if (meas.dataRows.length) {
+          for (const dr of meas.dataRows) realTotal += parsePtNumber(dr[dr.length - 1]);
+        }
+      }
+      const totRow = new Array(nCols).fill("");
+      totRow[0] = "Total";
+      totRow[nCols - 1] = fmtPt(realTotal);
+      aoa.push(totRow);
+    }
+
+    const wsItem = XLSX.utils.aoa_to_sheet(aoa);
+    wsItem["!cols"] = colHeaders.map(() => ({ wch: 20 }));
+    if (wsItem["!cols"].length) wsItem["!cols"][0] = { wch: 40 };
+    XLSX.utils.book_append_sheet(wb, wsItem, sheetName);
+  }
+
+  const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([out], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  void saveFile({
+    filename: `${filenameBase}.xlsx`,
+    mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    data: blob,
+    hint: "xlsx",
+  });
+}
+
 function buildLogText({ fileName, statusLines, meta, items, aggregated }) {
   const now = new Date();
   const header = [
@@ -211,72 +428,138 @@ async function extractItemsFromDocx(file) {
   const perr = xml.getElementsByTagName("parsererror");
   if (perr?.length) throw new Error("Falha ao interpretar o XML do DOCX.");
 
-  const tables = Array.from(xml.getElementsByTagName("w:tbl"));
-
   /** @type {Item[]} */
   const results = [];
   /** @type {string[]} */
   const ignored = [];
   let itensTables = 0;
+  const memorials = {};
+  const itemInfo = {};
+  let inCalcSection = false;
 
-  tables.forEach((tbl, tIndex) => {
+  // Iterar na ordem do documento (parágrafos + tabelas)
+  const body = xml.getElementsByTagName("w:body")[0];
+  if (!body) throw new Error("Não encontrou w:body no XML.");
+
+  const children = Array.from(body.childNodes);
+
+  for (const child of children) {
+    // Detectar parágrafo com header de seção
+    if (child.nodeName === "w:p") {
+      const pText = xmlTextOf(child).toUpperCase();
+      if (MEMORIAL_SECTION_RE.test(pText)) {
+        inCalcSection = true;
+      }
+      continue;
+    }
+
+    // Processar tabelas
+    if (child.nodeName !== "w:tbl") continue;
+
+    const tbl = child;
     const rows = Array.from(tbl.getElementsByTagName("w:tr"));
-    if (!rows.length) return;
+    if (!rows.length) continue;
 
     const headerCells = Array.from(rows[0].getElementsByTagName("w:tc"));
     const headerTexts = headerCells.map((tc) => xmlTextOf(tc));
+    const headerJoined = headerTexts.join(" ");
+
+    // Detectar formato
+    const mNew = ITEM_RE.exec(headerJoined);
     const isItens = headerTexts.some((t) => norm(t).toLowerCase() === "itens");
-    if (!isItens) return;
+
+    let fmt = "none";
+    let codeDetected = null;
+
+    if (mNew) {
+      fmt = "new";
+      codeDetected = mNew[1].trim();
+    } else if (isItens && rows.length > 1) {
+      const r1Cells = Array.from(rows[1].getElementsByTagName("w:tc")).map((tc) => xmlTextOf(tc));
+      if (r1Cells.length === 4 && CODE_RE.test(r1Cells[0]) && /^[\d.,]+$/.test(r1Cells[2])) {
+        fmt = "memorial";
+        codeDetected = r1Cells[0];
+      } else {
+        fmt = "old";
+      }
+    } else if (isItens) {
+      fmt = "old";
+    }
+
+    if (fmt === "none") continue;
+    if (inCalcSection && fmt === "new") continue;
 
     itensTables += 1;
 
-    rows.slice(1).forEach((tr, rOffset) => {
-      const rNumber = rOffset + 2;
-      const tNumber = tIndex + 1;
-
-      const tcs = Array.from(tr.getElementsByTagName("w:tc"));
-      if (!tcs.length) {
-        ignored.push(`T${tNumber} L${rNumber}: skip_empty_row`);
-        return;
-      }
-
-      const cellsText = tcs.map((tc) => xmlTextOf(tc));
-      const code = norm(cellsText[0] ?? "");
-      const desc = norm(cellsText[1] ?? "");
-
-      if (!code || code.toUpperCase() === "#N/D") {
-        ignored.push(`T${tNumber} L${rNumber}: skip_code_empty_or_ND`);
-        return;
-      }
-      if (!CODE_RE.test(code)) {
-        ignored.push(`T${tNumber} L${rNumber}: skip_code_invalid ${code}`);
-        return;
-      }
-
-      const qtyRaw = pickQuantityFromRow(cellsText);
-      if (!qtyRaw || qtyRaw.toUpperCase() === "#N/D") {
-        ignored.push(`T${tNumber} L${rNumber}: skip_qty_empty_or_ND ${code}`);
-        return;
-      }
-
-      const qty = parsePtNumber(qtyRaw);
-
-      results.push({
-        codigo: code,
-        descricao: desc,
-        quantidade_raw: qtyRaw,
-        quantidade: qty,
-        origem: `T${tNumber}/L${rNumber}`,
+    if (fmt === "old") {
+      rows.slice(1).forEach((tr, rOffset) => {
+        const rNumber = rOffset + 2;
+        const tcs = Array.from(tr.getElementsByTagName("w:tc"));
+        if (!tcs.length) { ignored.push(`T${itensTables} L${rNumber}: skip_empty_row`); return; }
+        const cellsText = tcs.map((tc) => xmlTextOf(tc));
+        const code = norm(cellsText[0] ?? "");
+        const desc = norm(cellsText[1] ?? "");
+        if (!code || code.toUpperCase() === "#N/D") { ignored.push(`T${itensTables} L${rNumber}: skip_code_empty_or_ND`); return; }
+        if (!CODE_RE.test(code)) { ignored.push(`T${itensTables} L${rNumber}: skip_code_invalid ${code}`); return; }
+        const qtyRaw = pickQuantityFromRow(cellsText);
+        if (!qtyRaw || qtyRaw.toUpperCase() === "#N/D") { ignored.push(`T${itensTables} L${rNumber}: skip_qty_empty_or_ND ${code}`); return; }
+        results.push({ codigo: code, descricao: desc, quantidade_raw: qtyRaw, quantidade: parsePtNumber(qtyRaw), origem: `T${itensTables}/L${rNumber}` });
       });
-    });
-  });
+    } else if (fmt === "new") {
+      // Capturar info completa
+      const descFull = norm(headerTexts[0]).replace(/\s*\(I*TEM\s+[\d.]+\)\s*$/i, "").trim();
+      const colHeaders = rows.length > 1
+        ? Array.from(rows[1].getElementsByTagName("w:tc")).map((tc) => xmlTextOf(tc))
+        : [];
+      let unit = "?";
+      for (const ch of colHeaders) {
+        const um = TOTAL_UNIT_RE.exec(ch);
+        if (um) { unit = um[1].trim(); break; }
+      }
+
+      if (!itemInfo[codeDetected]) {
+        itemInfo[codeDetected] = { desc: descFull, unit, colHeaders, measurements: [] };
+      }
+
+      const dataRows = [];
+      let subtotalRow = null;
+      let totalRow = null;
+
+      rows.slice(2).forEach((tr, rOffset) => {
+        const rNum = rOffset + 3;
+        const tcs = Array.from(tr.getElementsByTagName("w:tc"));
+        if (!tcs.length) { ignored.push(`T${itensTables} L${rNum}: skip_empty_row_NEW`); return; }
+        const cellsText = tcs.map((tc) => xmlTextOf(tc));
+        const label = cellsText[0].toLowerCase();
+
+        if (label.includes("subtotal")) { subtotalRow = cellsText; return; }
+        if (label.includes("total")) { totalRow = cellsText; return; }
+
+        const qty = norm(cellsText[cellsText.length - 1]);
+        if (!qty || qty.toUpperCase() === "#N/D") { ignored.push(`T${itensTables} L${rNum}: skip_qty_empty_or_ND_NEW ${codeDetected}`); return; }
+        if (/^[\d.,]+$/.test(qty)) {
+          results.push({ codigo: codeDetected, descricao: descFull, quantidade_raw: qty, quantidade: parsePtNumber(qty), origem: `T${itensTables}/L${rNum}` });
+          dataRows.push(cellsText);
+        } else {
+          ignored.push(`T${itensTables} L${rNum}: skip_qty_invalid_NEW ${qty}`);
+        }
+      });
+
+      itemInfo[codeDetected].measurements.push({ tableIdx: itensTables, dataRows, subtotalRow, totalRow });
+    } else if (fmt === "memorial") {
+      const r1Cells = Array.from(rows[1].getElementsByTagName("w:tc")).map((tc) => xmlTextOf(tc));
+      memorials[r1Cells[0]] = { desc: r1Cells[1], qtyDoc: r1Cells[2], unit: r1Cells[3] };
+    }
+  }
 
   const meta = {
-    tables_total: tables.length,
+    tables_total: itensTables,
     itens_tables: itensTables,
     rows_extracted: results.length,
     rows_ignored: ignored.length,
     ignored_details: ignored,
+    memorials,
+    itemInfo,
   };
 
   return { items: results, meta };
@@ -530,6 +813,15 @@ export default function AppExtratorDocx() {
     });
   }, [logText, file]);
 
+  const downloadMemorial = useCallback(() => {
+    if (!items.length || !meta) return;
+    buildMemorialXlsx(items, meta, `memorial_${safeBaseName(file?.name)}`);
+  }, [items, meta, file]);
+
+  const memorialItemCount = useMemo(() => {
+    return Object.keys(meta?.itemInfo ?? {}).length;
+  }, [meta]);
+
   const doAggregate = useCallback(async () => {
     if (!canAggregate) return;
 
@@ -727,6 +1019,9 @@ export default function AppExtratorDocx() {
                 <div className="tm-stats">
                   <StatCard label="Itens extraídos" value={fmtInt(items.length)} />
                   <StatCard label="Tabelas processadas" value={meta ? `${meta.itens_tables}/${meta.tables_total}` : "-"} />
+                  {memorialItemCount > 0 && (
+                    <StatCard label="Itens no Memorial" value={fmtInt(memorialItemCount)} sub="Memorial de Cálculo" />
+                  )}
                 </div>
 
                 <div className="tm-actions" style={{ marginTop: "16px" }}>
@@ -740,6 +1035,50 @@ export default function AppExtratorDocx() {
                   </button>
                 </div>
               </Section>
+
+              {/* MEMORIAL DE CÁLCULO */}
+              {memorialItemCount > 0 && (
+                <Section
+                  title="Memorial de Cálculo"
+                  desc={`${fmtInt(memorialItemCount)} itens com medições detalhadas`}
+                  right={
+                    <Badge kind="ok" icon={<ClipboardList size={16} />}>
+                      {Object.keys(meta?.memorials ?? {}).length > 0 ? "Com comparação" : "Gerado do zero"}
+                    </Badge>
+                  }
+                >
+                  <div className="tm-preview">
+                    {Object.entries(meta?.itemInfo ?? {})
+                      .sort(([a], [b]) => naturalSort(a, b))
+                      .slice(0, 6)
+                      .map(([code, info]) => {
+                        const totalMeas = info.measurements?.reduce((s, m) => s + m.dataRows.length, 0) ?? 0;
+                        return (
+                          <div key={code} className="tm-preview__item">
+                            <div className="tm-preview__meta">
+                              <div className="tm-preview__code">{code}</div>
+                              <div className="tm-preview__desc">
+                                {(info.desc || "(sem descrição)").slice(0, 80)}
+                                {(info.desc || "").length > 80 ? "..." : ""}
+                              </div>
+                            </div>
+                            <div className="tm-preview__qty" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                              <span>{totalMeas} medições</span>
+                              <span style={{ fontSize: "11px", opacity: 0.7 }}>{info.unit ?? "?"}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  <div className="tm-actions" style={{ marginTop: "16px" }}>
+                    <button type="button" onClick={downloadMemorial} className="tm-btn tm-btn--primary">
+                      <Table2 size={16} />
+                      Baixar Memorial Completo
+                    </button>
+                  </div>
+                </Section>
+              )}
 
               {/* CONSOLIDAÇÃO */}
               {items.length > 0 && (
