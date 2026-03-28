@@ -9,16 +9,23 @@ import {
   AlertTriangle,
   Info,
   Sigma,
+  Moon,
+  Sun,
+  ClipboardList,
+  Table2,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
 
 /**
- * Extrator de Itens DOCX (Online)
- * Layout com CSS proprio + hierarquia visual.
+ * Extrator de Itens DOCX - Ocean Breeze Design
+ * Redesigned com foco em simplicidade e hierarquia visual
  */
 
 const CODE_RE = /^\s*\d+(?:\.\d+)?\s*$/;
+const ITEM_RE = /\(\s*I*TEM\s+([\d.]+)\s*\)/i;
+const TOTAL_UNIT_RE = /TOTAL\s*\(([^)]+)\)/i;
+const MEMORIAL_SECTION_RE = /MEMORIAL DE CÁLCULO E ITENS/i;
 
 /** @typedef {{ codigo: string; descricao: string; quantidade_raw: string; quantidade: number; origem?: string }} Item */
 
@@ -141,6 +148,218 @@ function buildXlsx(items, filenameBase) {
   });
 }
 
+function naturalKey(k) {
+  return k.split(/(\d+)/).map((s) => (/^\d+$/.test(s) ? Number(s) : s));
+}
+
+function naturalSort(a, b) {
+  const ka = naturalKey(a);
+  const kb = naturalKey(b);
+  for (let i = 0; i < Math.max(ka.length, kb.length); i++) {
+    const va = ka[i] ?? "";
+    const vb = kb[i] ?? "";
+    if (typeof va === "number" && typeof vb === "number") {
+      if (va !== vb) return va - vb;
+    } else {
+      const cmp = String(va).localeCompare(String(vb));
+      if (cmp !== 0) return cmp;
+    }
+  }
+  return 0;
+}
+
+function buildMemorialXlsx(items, meta, filenameBase) {
+  const wb = XLSX.utils.book_new();
+  const itemInfo = meta?.itemInfo ?? {};
+  const memorialsDoc = meta?.memorials ?? {};
+
+  const fmtPt = (val) =>
+    val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // --- Aba 1: Itens ---
+  const wsItens = XLSX.utils.aoa_to_sheet([
+    ["Codigo", "Quantidade"],
+    ...items.map((it) => [it.codigo, it.quantidade_raw]),
+  ]);
+  wsItens["!cols"] = [{ wch: 12 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+
+  // --- Aba 2: Consolidado ---
+  const consMap = new Map();
+  items.forEach((it) => {
+    const prev = consMap.get(it.codigo) ?? 0;
+    consMap.set(it.codigo, prev + (Number.isFinite(it.quantidade) ? it.quantidade : 0));
+  });
+  const consRows = Array.from(consMap.entries()).sort((a, b) => naturalSort(a[0], b[0]));
+  const wsCons = XLSX.utils.aoa_to_sheet([
+    ["Codigo", "Quantidade Total"],
+    ...consRows.map(([c, q]) => [c, fmtPt(q)]),
+  ]);
+  wsCons["!cols"] = [{ wch: 12 }, { wch: 18 }];
+  XLSX.utils.book_append_sheet(wb, wsCons, "Consolidado");
+
+  // --- Aba 3: Memorial Final ---
+  const hasDocMemorial = Object.keys(memorialsDoc).length > 0;
+
+  // Calcular Total real por código (usando Total das tabelas)
+  const realSums = {};
+  for (const [code, info] of Object.entries(itemInfo)) {
+    let total = 0;
+    for (const meas of info.measurements) {
+      if (meas.totalRow) {
+        total += parsePtNumber(meas.totalRow[meas.totalRow.length - 1]);
+      } else if (meas.dataRows.length) {
+        for (const dr of meas.dataRows) total += parsePtNumber(dr[dr.length - 1]);
+      }
+    }
+    realSums[code] = total;
+  }
+
+  // Fallback: somas brutas
+  const rawSums = {};
+  items.forEach((it) => {
+    rawSums[it.codigo] = (rawSums[it.codigo] ?? 0) + (Number.isFinite(it.quantidade) ? it.quantidade : 0);
+  });
+
+  const allCodes = [...new Set([...Object.keys(rawSums), ...Object.keys(itemInfo), ...Object.keys(memorialsDoc)])];
+  allCodes.sort(naturalSort);
+
+  const finalRows = [];
+  if (hasDocMemorial) {
+    finalRows.push(["Código", "Descrição", "Qtd Script", "Qtd Documento", "Unidade", "Status"]);
+  } else {
+    finalRows.push(["Código", "Descrição", "Quantidade Total", "Unidade"]);
+  }
+
+  for (const code of allCodes) {
+    const totalScript = realSums[code] ?? rawSums[code] ?? 0;
+    const info = itemInfo[code] ?? {};
+    const docMem = memorialsDoc[code];
+    const desc = info.desc ?? (docMem?.desc ?? "");
+    const unit = info.unit ?? (docMem?.unit ?? "");
+
+    if (hasDocMemorial) {
+      const qtyDocStr = docMem?.qtyDoc ?? "N/A";
+      const qtyDocVal = docMem ? parsePtNumber(qtyDocStr) : 0;
+      const diff = Math.abs(totalScript - qtyDocVal);
+      let status = diff < 0.01 ? "CONFERE" : "DIVERGENTE";
+      if (!docMem) status = "SEM MEMORIAL NO DOC";
+      finalRows.push([code, desc, fmtPt(totalScript), qtyDocStr, unit, status]);
+    } else {
+      finalRows.push([code, desc, fmtPt(totalScript), unit]);
+    }
+  }
+
+  const wsFinal = XLSX.utils.aoa_to_sheet(finalRows);
+  wsFinal["!cols"] = hasDocMemorial
+    ? [{ wch: 10 }, { wch: 60 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 14 }]
+    : [{ wch: 10 }, { wch: 60 }, { wch: 18 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, wsFinal, "Memorial Final");
+
+  // --- Abas 4+: MemCalc por Item ---
+  const sortedItems = Object.keys(itemInfo).sort(naturalSort);
+
+  for (const code of sortedItems) {
+    const info = itemInfo[code];
+    const { measurements } = info;
+    const colHeaders = info.colHeaders ?? [];
+    const nCols = colHeaders.length || 2;
+    const desc = info.desc ?? "";
+    const unit = info.unit ?? "?";
+
+    // Detectar multiplicadores
+    let hasSpecial = false;
+    for (const meas of measurements) {
+      if (meas.totalRow) {
+        const label = meas.totalRow[0].toLowerCase();
+        if (label !== "total" && label.includes("total")) hasSpecial = true;
+      }
+    }
+
+    const sheetName = `MemCalc_${code}`.slice(0, 31);
+    const aoa = [];
+
+    // Header com descrição + código
+    const headerRow = new Array(nCols).fill("");
+    headerRow[0] = `${desc} (ITEM ${code})`;
+    aoa.push(headerRow);
+
+    // Cabeçalhos de coluna
+    aoa.push(colHeaders.length ? colHeaders : ["REFERÊNCIA", `TOTAL (${unit})`]);
+
+    if (hasSpecial) {
+      let grandTotal = 0;
+      for (const meas of measurements) {
+        for (const dr of meas.dataRows) aoa.push(dr);
+        if (meas.subtotalRow) aoa.push(meas.subtotalRow);
+        if (meas.totalRow) {
+          aoa.push(meas.totalRow);
+          grandTotal += parsePtNumber(meas.totalRow[meas.totalRow.length - 1]);
+        } else if (meas.dataRows.length) {
+          for (const dr of meas.dataRows) grandTotal += parsePtNumber(dr[dr.length - 1]);
+        }
+      }
+      const tgRow = new Array(nCols).fill("");
+      tgRow[0] = "TOTAL GERAL";
+      tgRow[nCols - 1] = fmtPt(grandTotal);
+      aoa.push(tgRow);
+    } else {
+      let grandTotal = 0;
+      for (const meas of measurements) {
+        for (const dr of meas.dataRows) {
+          aoa.push(dr);
+          grandTotal += parsePtNumber(dr[dr.length - 1]);
+        }
+      }
+      // Subtotal
+      const subRow = new Array(nCols).fill("");
+      subRow[0] = "Subtotal";
+      if (nCols >= 4) {
+        let discountSum = 0;
+        for (const meas of measurements) {
+          for (const dr of meas.dataRows) {
+            if (dr.length >= 4) discountSum += parsePtNumber(dr[dr.length - 2]);
+          }
+        }
+        subRow[nCols - 2] = fmtPt(discountSum);
+      }
+      subRow[nCols - 1] = fmtPt(grandTotal);
+      aoa.push(subRow);
+
+      // Total (real)
+      let realTotal = 0;
+      for (const meas of measurements) {
+        if (meas.totalRow) {
+          realTotal += parsePtNumber(meas.totalRow[meas.totalRow.length - 1]);
+        } else if (meas.dataRows.length) {
+          for (const dr of meas.dataRows) realTotal += parsePtNumber(dr[dr.length - 1]);
+        }
+      }
+      const totRow = new Array(nCols).fill("");
+      totRow[0] = "Total";
+      totRow[nCols - 1] = fmtPt(realTotal);
+      aoa.push(totRow);
+    }
+
+    const wsItem = XLSX.utils.aoa_to_sheet(aoa);
+    wsItem["!cols"] = colHeaders.map(() => ({ wch: 20 }));
+    if (wsItem["!cols"].length) wsItem["!cols"][0] = { wch: 40 };
+    XLSX.utils.book_append_sheet(wb, wsItem, sheetName);
+  }
+
+  const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([out], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  void saveFile({
+    filename: `${filenameBase}.xlsx`,
+    mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    data: blob,
+    hint: "xlsx",
+  });
+}
+
 function buildLogText({ fileName, statusLines, meta, items, aggregated }) {
   const now = new Date();
   const header = [
@@ -163,13 +382,13 @@ function buildLogText({ fileName, statusLines, meta, items, aggregated }) {
   const ignored = (meta?.ignored_details ?? []).slice(0, 300);
   const ignoredBlock = ignored.length
     ? [
-        "--- Detalhes ignorados (amostra) ---",
-        ...ignored.map((d) => `- ${d}`),
-        ignored.length < (meta?.ignored_details ?? []).length
-          ? `... (${(meta?.ignored_details ?? []).length - ignored.length} a mais)`
-          : "",
-        "",
-      ].filter(Boolean)
+      "--- Detalhes ignorados (amostra) ---",
+      ...ignored.map((d) => `- ${d}`),
+      ignored.length < (meta?.ignored_details ?? []).length
+        ? `... (${(meta?.ignored_details ?? []).length - ignored.length} a mais)`
+        : "",
+      "",
+    ].filter(Boolean)
     : [];
 
   const sample = (items ?? []).slice(0, 20).map(
@@ -209,72 +428,138 @@ async function extractItemsFromDocx(file) {
   const perr = xml.getElementsByTagName("parsererror");
   if (perr?.length) throw new Error("Falha ao interpretar o XML do DOCX.");
 
-  const tables = Array.from(xml.getElementsByTagName("w:tbl"));
-
   /** @type {Item[]} */
   const results = [];
   /** @type {string[]} */
   const ignored = [];
   let itensTables = 0;
+  const memorials = {};
+  const itemInfo = {};
+  let inCalcSection = false;
 
-  tables.forEach((tbl, tIndex) => {
+  // Iterar na ordem do documento (parágrafos + tabelas)
+  const body = xml.getElementsByTagName("w:body")[0];
+  if (!body) throw new Error("Não encontrou w:body no XML.");
+
+  const children = Array.from(body.childNodes);
+
+  for (const child of children) {
+    // Detectar parágrafo com header de seção
+    if (child.nodeName === "w:p") {
+      const pText = xmlTextOf(child).toUpperCase();
+      if (MEMORIAL_SECTION_RE.test(pText)) {
+        inCalcSection = true;
+      }
+      continue;
+    }
+
+    // Processar tabelas
+    if (child.nodeName !== "w:tbl") continue;
+
+    const tbl = child;
     const rows = Array.from(tbl.getElementsByTagName("w:tr"));
-    if (!rows.length) return;
+    if (!rows.length) continue;
 
     const headerCells = Array.from(rows[0].getElementsByTagName("w:tc"));
     const headerTexts = headerCells.map((tc) => xmlTextOf(tc));
+    const headerJoined = headerTexts.join(" ");
+
+    // Detectar formato
+    const mNew = ITEM_RE.exec(headerJoined);
     const isItens = headerTexts.some((t) => norm(t).toLowerCase() === "itens");
-    if (!isItens) return;
+
+    let fmt = "none";
+    let codeDetected = null;
+
+    if (mNew) {
+      fmt = "new";
+      codeDetected = mNew[1].trim();
+    } else if (isItens && rows.length > 1) {
+      const r1Cells = Array.from(rows[1].getElementsByTagName("w:tc")).map((tc) => xmlTextOf(tc));
+      if (r1Cells.length === 4 && CODE_RE.test(r1Cells[0]) && /^[\d.,]+$/.test(r1Cells[2])) {
+        fmt = "memorial";
+        codeDetected = r1Cells[0];
+      } else {
+        fmt = "old";
+      }
+    } else if (isItens) {
+      fmt = "old";
+    }
+
+    if (fmt === "none") continue;
+    if (inCalcSection && fmt === "new") continue;
 
     itensTables += 1;
 
-    rows.slice(1).forEach((tr, rOffset) => {
-      const rNumber = rOffset + 2;
-      const tNumber = tIndex + 1;
-
-      const tcs = Array.from(tr.getElementsByTagName("w:tc"));
-      if (!tcs.length) {
-        ignored.push(`T${tNumber} L${rNumber}: skip_empty_row`);
-        return;
-      }
-
-      const cellsText = tcs.map((tc) => xmlTextOf(tc));
-      const code = norm(cellsText[0] ?? "");
-      const desc = norm(cellsText[1] ?? "");
-
-      if (!code || code.toUpperCase() === "#N/D") {
-        ignored.push(`T${tNumber} L${rNumber}: skip_code_empty_or_ND`);
-        return;
-      }
-      if (!CODE_RE.test(code)) {
-        ignored.push(`T${tNumber} L${rNumber}: skip_code_invalid ${code}`);
-        return;
-      }
-
-      const qtyRaw = pickQuantityFromRow(cellsText);
-      if (!qtyRaw || qtyRaw.toUpperCase() === "#N/D") {
-        ignored.push(`T${tNumber} L${rNumber}: skip_qty_empty_or_ND ${code}`);
-        return;
-      }
-
-      const qty = parsePtNumber(qtyRaw);
-
-      results.push({
-        codigo: code,
-        descricao: desc,
-        quantidade_raw: qtyRaw,
-        quantidade: qty,
-        origem: `T${tNumber}/L${rNumber}`,
+    if (fmt === "old") {
+      rows.slice(1).forEach((tr, rOffset) => {
+        const rNumber = rOffset + 2;
+        const tcs = Array.from(tr.getElementsByTagName("w:tc"));
+        if (!tcs.length) { ignored.push(`T${itensTables} L${rNumber}: skip_empty_row`); return; }
+        const cellsText = tcs.map((tc) => xmlTextOf(tc));
+        const code = norm(cellsText[0] ?? "");
+        const desc = norm(cellsText[1] ?? "");
+        if (!code || code.toUpperCase() === "#N/D") { ignored.push(`T${itensTables} L${rNumber}: skip_code_empty_or_ND`); return; }
+        if (!CODE_RE.test(code)) { ignored.push(`T${itensTables} L${rNumber}: skip_code_invalid ${code}`); return; }
+        const qtyRaw = pickQuantityFromRow(cellsText);
+        if (!qtyRaw || qtyRaw.toUpperCase() === "#N/D") { ignored.push(`T${itensTables} L${rNumber}: skip_qty_empty_or_ND ${code}`); return; }
+        results.push({ codigo: code, descricao: desc, quantidade_raw: qtyRaw, quantidade: parsePtNumber(qtyRaw), origem: `T${itensTables}/L${rNumber}` });
       });
-    });
-  });
+    } else if (fmt === "new") {
+      // Capturar info completa
+      const descFull = norm(headerTexts[0]).replace(/\s*\(I*TEM\s+[\d.]+\)\s*$/i, "").trim();
+      const colHeaders = rows.length > 1
+        ? Array.from(rows[1].getElementsByTagName("w:tc")).map((tc) => xmlTextOf(tc))
+        : [];
+      let unit = "?";
+      for (const ch of colHeaders) {
+        const um = TOTAL_UNIT_RE.exec(ch);
+        if (um) { unit = um[1].trim(); break; }
+      }
+
+      if (!itemInfo[codeDetected]) {
+        itemInfo[codeDetected] = { desc: descFull, unit, colHeaders, measurements: [] };
+      }
+
+      const dataRows = [];
+      let subtotalRow = null;
+      let totalRow = null;
+
+      rows.slice(2).forEach((tr, rOffset) => {
+        const rNum = rOffset + 3;
+        const tcs = Array.from(tr.getElementsByTagName("w:tc"));
+        if (!tcs.length) { ignored.push(`T${itensTables} L${rNum}: skip_empty_row_NEW`); return; }
+        const cellsText = tcs.map((tc) => xmlTextOf(tc));
+        const label = cellsText[0].toLowerCase();
+
+        if (label.includes("subtotal")) { subtotalRow = cellsText; return; }
+        if (label.includes("total")) { totalRow = cellsText; return; }
+
+        const qty = norm(cellsText[cellsText.length - 1]);
+        if (!qty || qty.toUpperCase() === "#N/D") { ignored.push(`T${itensTables} L${rNum}: skip_qty_empty_or_ND_NEW ${codeDetected}`); return; }
+        if (/^[\d.,]+$/.test(qty)) {
+          results.push({ codigo: codeDetected, descricao: descFull, quantidade_raw: qty, quantidade: parsePtNumber(qty), origem: `T${itensTables}/L${rNum}` });
+          dataRows.push(cellsText);
+        } else {
+          ignored.push(`T${itensTables} L${rNum}: skip_qty_invalid_NEW ${qty}`);
+        }
+      });
+
+      itemInfo[codeDetected].measurements.push({ tableIdx: itensTables, dataRows, subtotalRow, totalRow });
+    } else if (fmt === "memorial") {
+      const r1Cells = Array.from(rows[1].getElementsByTagName("w:tc")).map((tc) => xmlTextOf(tc));
+      memorials[r1Cells[0]] = { desc: r1Cells[1], qtyDoc: r1Cells[2], unit: r1Cells[3] };
+    }
+  }
 
   const meta = {
-    tables_total: tables.length,
+    tables_total: itensTables,
     itens_tables: itensTables,
     rows_extracted: results.length,
     rows_ignored: ignored.length,
     ignored_details: ignored,
+    memorials,
+    itemInfo,
   };
 
   return { items: results, meta };
@@ -307,26 +592,22 @@ function aggregateItems(items, rule) {
     }
   });
 
-  return Array.from(map.values()).sort((a, b) => {
-    const ak = `${a.codigo} ${a.descricao}`.trim().toLowerCase();
-    const bk = `${b.codigo} ${b.descricao}`.trim().toLowerCase();
-    return ak.localeCompare(bk, "pt-BR");
-  });
+  return Array.from(map.values());
 }
 
 function Badge({ kind, icon, children }) {
   const cls =
     kind === "idle"
-      ? "badge badge--idle"
+      ? "tm-badge tm-badge--idle"
       : kind === "work"
-      ? "badge badge--work"
-      : kind === "ok"
-      ? "badge badge--ok"
-      : "badge badge--err";
+        ? "tm-badge tm-badge--work"
+        : kind === "ok"
+          ? "tm-badge tm-badge--ok"
+          : "tm-badge tm-badge--err";
 
   return (
     <span className={cls}>
-      <span className="badge__icon">{icon}</span>
+      <span className="tm-badge__icon">{icon}</span>
       <span>{children}</span>
     </span>
   );
@@ -334,25 +615,25 @@ function Badge({ kind, icon, children }) {
 
 function StatCard({ label, value, sub }) {
   return (
-    <div className="stat-card">
-      <div className="stat-card__label">{label}</div>
-      <div className="stat-card__value">{value}</div>
-      {sub ? <div className="stat-card__sub">{sub}</div> : null}
+    <div className="tm-stat">
+      <div className="tm-stat__label">{label}</div>
+      <div className="tm-stat__value">{value}</div>
+      {sub ? <div className="tm-stat__sub">{sub}</div> : null}
     </div>
   );
 }
 
 function Section({ title, desc, right, children }) {
   return (
-    <section className="panel">
-      <div className="panel__header">
-        <div>
-          <h2 className="panel__title">{title}</h2>
-          {desc ? <p className="panel__desc">{desc}</p> : null}
+    <section className="tm-panel">
+      <div className="tm-panel__header">
+        <div className="tm-panel__left">
+          <h2 className="tm-panel__title">{title}</h2>
+          {desc ? <div className="tm-panel__desc">{desc}</div> : null}
         </div>
-        {right ? <div className="panel__right">{right}</div> : null}
+        {right ? <div className="tm-panel__right">{right}</div> : null}
       </div>
-      {children}
+      <div className="tm-panel__body">{children}</div>
     </section>
   );
 }
@@ -360,13 +641,14 @@ function Section({ title, desc, right, children }) {
 export default function AppExtratorDocx() {
   const inputRef = useRef(null);
   const [drag, setDrag] = useState(false);
+  const [theme, setTheme] = useState("light");
 
   const [file, setFile] = useState(null);
   const [phase, setPhase] = useState("idle");
   const [statusText, setStatusText] = useState("Envie um .docx para iniciar.");
   const [lines, setLines] = useState(["Pronto para receber arquivo."]);
 
-  const [items, setItems] = useState(/** @type {Item[]} */ ([]));
+  const [items, setItems] = useState(/** @type {Item[]} */([]));
   const [meta, setMeta] = useState(null);
   const [logText, setLogText] = useState("");
 
@@ -394,7 +676,7 @@ export default function AppExtratorDocx() {
     setFile(f);
     setPhase("idle");
     setStatusText("Arquivo carregado. Pronto para processar.");
-    setLines(["Arquivo selecionado", "Clique em PROCESSAR DOCUMENTO"]);
+    setLines(["Arquivo selecionado", "Clique em EXTRAIR ITENS"]);
 
     setItems([]);
     setMeta(null);
@@ -478,8 +760,7 @@ export default function AppExtratorDocx() {
       setStatusText("Extracao concluida!");
       setLines([
         `Itens encontrados: ${fmtInt(extracted.length)}`,
-        "Gere Excel bruto e (opcional) consolidado",
-        "Log disponivel para auditoria",
+        "Downloads disponiveis abaixo",
       ]);
     } catch (err) {
       setPhase("err");
@@ -532,6 +813,15 @@ export default function AppExtratorDocx() {
     });
   }, [logText, file]);
 
+  const downloadMemorial = useCallback(() => {
+    if (!items.length || !meta) return;
+    buildMemorialXlsx(items, meta, `memorial_${safeBaseName(file?.name)}`);
+  }, [items, meta, file]);
+
+  const memorialItemCount = useMemo(() => {
+    return Object.keys(meta?.itemInfo ?? {}).length;
+  }, [meta]);
+
   const doAggregate = useCallback(async () => {
     if (!canAggregate) return;
 
@@ -549,13 +839,13 @@ export default function AppExtratorDocx() {
         aggRule === "code_only"
           ? "Apenas Codigo"
           : aggRule === "desc_only"
-          ? "Apenas Descricao"
-          : "Codigo + Descricao";
-      setAggText("Soma concluida!");
+            ? "Apenas Descricao"
+            : "Codigo + Descricao";
+      setAggText("Consolidacao concluida!");
       setAggLines([
         `Regra: ${keyLabel}`,
         `Itens unicos: ${fmtInt(ag.length)}`,
-        "Excel consolidado pronto",
+        "Planilha pronta para download",
       ]);
 
       if (file) {
@@ -578,50 +868,77 @@ export default function AppExtratorDocx() {
   }, [aggRule, canAggregate, items, file]);
 
   const badge = useMemo(() => {
-    if (phase === "work") return { kind: "work", icon: <Loader2 size={16} className="spin" /> };
+    if (phase === "work") return { kind: "work", icon: <Loader2 size={16} className="tm-spin" /> };
     if (phase === "ok") return { kind: "ok", icon: <CheckCircle2 size={16} /> };
     if (phase === "err") return { kind: "err", icon: <AlertTriangle size={16} /> };
     return { kind: "idle", icon: <Info size={16} /> };
   }, [phase]);
 
   const aggBadge = useMemo(() => {
-    if (aggPhase === "work") return { kind: "work", icon: <Loader2 size={16} className="spin" /> };
+    if (aggPhase === "work") return { kind: "work", icon: <Loader2 size={16} className="tm-spin" /> };
     if (aggPhase === "ok") return { kind: "ok", icon: <Sigma size={16} /> };
     if (aggPhase === "err") return { kind: "err", icon: <AlertTriangle size={16} /> };
     return { kind: "idle", icon: <Info size={16} /> };
   }, [aggPhase]);
 
-  const keyLabel =
-    aggRule === "code_only" ? "Apenas Codigo" : aggRule === "desc_only" ? "Apenas Descricao" : "Codigo + Descricao";
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  }, []);
 
   return (
-    <div className="app">
-      <header className="app__header">
-        <div className="brand">
-          <img className="brand__logo" src="/tm_logo.svg" alt="TM Sempre Tecnologia" />
-          <div className="brand__name">TM Sempre Tecnologia</div>
-          <div className="brand__sub">Extrator de Itens DOCX - Layout vertical</div>
+    <div className={cn("tm-root", theme === "dark" && "dark")}>
+      <header className="tm-header">
+        <div className="tm-brand">
+          <div className="tm-brand__mark">TM</div>
+          <div>
+            <div className="tm-brand__name">TM Sempre Tecnologia</div>
+            <div className="tm-brand__sub">Extrator de Itens DOCX</div>
+          </div>
         </div>
-        <div className="header__meta">
-          <span className="pill pill--online">
-            <span className="dot" />
+
+        <div className="tm-header__right">
+          <span className="tm-pill tm-pill--online">
+            <span className="tm-dot" />
             Online
           </span>
-          <span className="pill">v1.3</span>
+          <button type="button" className="tm-btn tm-btn--outline" onClick={toggleTheme} aria-label="Alternar tema">
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
       </header>
 
-      <main className="app__main">
+      <main className="tm-main">
+        {/* HERO - Só aparece no idle */}
+        {phase === "idle" && !file && (
+          <div style={{ textAlign: "center", padding: "48px 20px 32px", marginBottom: "24px" }}>
+            <h1 style={{
+              fontSize: "clamp(28px, 5vw, 40px)",
+              fontWeight: "800",
+              marginBottom: "16px",
+              letterSpacing: "-0.5px",
+              lineHeight: "1.1"
+            }}>
+              Extraia itens do seu DOCX em segundos
+            </h1>
+            <p style={{
+              fontSize: "16px",
+              color: "var(--TM-muted-foreground)",
+              maxWidth: "560px",
+              margin: "0 auto",
+              lineHeight: "1.6"
+            }}>
+              Arraste seu relatório DOCX aqui. Identificamos as tabelas de itens e geramos o Excel para você.
+            </p>
+          </div>
+        )}
+
+        {/* UPLOAD SECTION */}
         <Section
-          title="1) Enviar e processar"
-          desc={
-            <>
-              Envie um arquivo <b>.docx</b>. Depois gere o <b>Excel bruto</b> e (opcional) o <b>consolidado</b>.
-            </>
-          }
+          title="Upload do Arquivo"
+          desc="Arraste seu DOCX aqui ou clique para selecionar"
           right={
             <Badge kind={badge.kind} icon={badge.icon}>
-              {phase === "idle" ? "Aguardando" : phase === "work" ? "Processando" : phase === "ok" ? "Sucesso" : "Erro"}
+              {phase === "idle" ? "Aguardando" : phase === "work" ? "Processando" : phase === "ok" ? "Concluído" : "Erro"}
             </Badge>
           }
         >
@@ -642,227 +959,217 @@ export default function AppExtratorDocx() {
               setDrag(false);
             }}
             onDrop={onDrop}
-            className={cn("dropzone", drag && "dropzone--active")}
+            className={cn("tm-drop", drag && "tm-drop--active")}
             role="button"
             tabIndex={0}
             onClick={onPick}
           >
-            <div className="dropzone__row">
-              <div className="dropzone__row">
-                <div className="dropzone__icon">DOCX</div>
-                <div className="dropzone__copy">
-                  <div className="dropzone__title">Arraste o arquivo aqui</div>
-                  <div className="dropzone__hint">ou clique para selecionar</div>
+            <div className="tm-drop__row">
+              <div className="tm-drop__left">
+                <div className="tm-drop__icon">DOCX</div>
+                <div>
+                  <div className="tm-drop__title">Arraste seu DOCX aqui</div>
+                  <div className="tm-drop__hint">ou clique para selecionar · Max: 20MB</div>
                 </div>
               </div>
-              <div className="dropzone__hint">Max. recomendado: 20MB</div>
             </div>
           </div>
 
           <input ref={inputRef} type="file" accept=".docx" hidden onChange={onInputChange} />
 
-          <div className="actions" style={{ marginTop: "14px" }}>
-            <button type="button" onClick={processDoc} disabled={!canProcess} className="btn btn--primary">
-              {phase === "work" ? <Loader2 size={16} className="spin" /> : <FileText size={16} />}
-              Processar documento
+          <div className="tm-actions" style={{ marginTop: "16px" }}>
+            <button type="button" onClick={processDoc} disabled={!canProcess} className="tm-btn tm-btn--primary">
+              {phase === "work" ? <Loader2 size={16} className="tm-spin" /> : <FileText size={16} />}
+              Extrair Itens
             </button>
-            <button type="button" onClick={onPick} disabled={phase === "work"} className="btn btn--outline">
+            <button type="button" onClick={onPick} disabled={phase === "work"} className="tm-btn tm-btn--outline">
               <CloudUpload size={16} />
-              Selecionar outro
+              Novo Arquivo
             </button>
           </div>
 
-          <div className="status" style={{ marginTop: "14px" }}>
-            <div className="status__top">
-              <span>{statusText}</span>
-              <span className="status__file">{file?.name ?? "(nenhum)"}</span>
+          {file && (
+            <div className="tm-status" style={{ marginTop: "14px" }}>
+              <div className="tm-status__top">
+                <span>{statusText}</span>
+                <span className="tm-status__file">{file.name}</span>
+              </div>
+              <div className="tm-status__lines">
+                {lines.map((l, i) => (
+                  <span key={i}>{l}</span>
+                ))}
+              </div>
             </div>
-            <div className="status__lines">
-              {lines.map((l, i) => (
-                <span key={i}>{l}</span>
-              ))}
-            </div>
-          </div>
+          )}
         </Section>
 
-        {phase === "ok" ? (
-          <Section title="Resultado" desc="Pronto para download.">
-            <div className="status__top" style={{ marginBottom: "10px" }}>
-              <span>Extracao concluida com sucesso.</span>
-              <span className="status__file">{fmtInt(items.length)} itens</span>
-            </div>
-            <div className="actions">
-              <button type="button" onClick={downloadBruto} disabled={!items.length} className="btn btn--primary">
-                <Download size={16} />
-                Baixar Excel bruto
-              </button>
-              <button type="button" onClick={downloadLog} disabled={!logText} className="btn btn--outline">
-                <Download size={16} />
-                Baixar Log
-              </button>
-            </div>
-          </Section>
-        ) : null}
-
+        {/* RESULTADO - Só aparece quando concluído */}
         <AnimatePresence>
-          {phase === "ok" && items.length > 0 ? (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
+          {phase === "ok" && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.3 }}
+            >
               <Section
-                title="3) Somar itens iguais"
-                desc={
-                  <>
-                    Gera uma planilha consolidada somando <b>Quantidade</b> para itens repetidos.
-                  </>
-                }
-                right={
-                  <Badge kind={aggBadge.kind} icon={aggBadge.icon}>
-                    {aggPhase === "idle" ? "Pronto" : aggPhase === "work" ? "Somando" : aggPhase === "ok" ? "Concluido" : "Erro"}
-                  </Badge>
-                }
+                title="Resumo da Extração"
+                desc={`${fmtInt(items.length)} itens encontrados e prontos para download`}
               >
-                <div className="panel__desc">Regra de chave:</div>
-                <div className="rule-grid">
-                  {[
-                    { v: "code_desc", label: "Codigo + Descricao" },
-                    { v: "code_only", label: "Apenas Codigo" },
-                    { v: "desc_only", label: "Apenas Descricao" },
-                  ].map((opt) => (
-                    <label key={opt.v} className="rule-card">
-                      <input
-                        type="radio"
-                        name="rule"
-                        value={opt.v}
-                        checked={aggRule === opt.v}
-                        onChange={() => setAggRule(opt.v)}
-                      />
-                      {opt.label}
-                    </label>
-                  ))}
+                <div className="tm-stats">
+                  <StatCard label="Itens extraídos" value={fmtInt(items.length)} />
+                  <StatCard label="Tabelas processadas" value={meta ? `${meta.itens_tables}/${meta.tables_total}` : "-"} />
+                  {memorialItemCount > 0 && (
+                    <StatCard label="Itens no Memorial" value={fmtInt(memorialItemCount)} sub="Memorial de Cálculo" />
+                  )}
                 </div>
 
-                <div className="actions" style={{ marginTop: "14px" }}>
-                  <button type="button" onClick={doAggregate} disabled={!canAggregate} className="btn btn--primary">
-                    {aggPhase === "work" ? <Loader2 size={16} className="spin" /> : <Sigma size={16} />}
-                    Gerar planilha somada
-                  </button>
-                  <button
-                    type="button"
-                    onClick={downloadSomado}
-                    disabled={aggPhase !== "ok" || aggItems.length === 0}
-                    className="btn btn--outline"
-                  >
+                <div className="tm-actions" style={{ marginTop: "16px" }}>
+                  <button type="button" onClick={downloadBruto} className="tm-btn tm-btn--primary">
                     <Download size={16} />
-                    Baixar Excel consolidado
+                    Baixar Excel
+                  </button>
+                  <button type="button" onClick={downloadLog} disabled={!logText} className="tm-btn tm-btn--outline">
+                    <Download size={16} />
+                    Baixar Log
                   </button>
                 </div>
+              </Section>
 
-                <div className="status" style={{ marginTop: "14px" }}>
-                  <div className="status__top">
-                    <span>{aggText}</span>
+              {/* MEMORIAL DE CÁLCULO */}
+              {memorialItemCount > 0 && (
+                <Section
+                  title="Memorial de Cálculo"
+                  desc={`${fmtInt(memorialItemCount)} itens com medições detalhadas`}
+                  right={
+                    <Badge kind="ok" icon={<ClipboardList size={16} />}>
+                      {Object.keys(meta?.memorials ?? {}).length > 0 ? "Com comparação" : "Gerado do zero"}
+                    </Badge>
+                  }
+                >
+                  <div className="tm-preview">
+                    {Object.entries(meta?.itemInfo ?? {})
+                      .sort(([a], [b]) => naturalSort(a, b))
+                      .slice(0, 6)
+                      .map(([code, info]) => {
+                        const totalMeas = info.measurements?.reduce((s, m) => s + m.dataRows.length, 0) ?? 0;
+                        return (
+                          <div key={code} className="tm-preview__item">
+                            <div className="tm-preview__meta">
+                              <div className="tm-preview__code">{code}</div>
+                              <div className="tm-preview__desc">
+                                {(info.desc || "(sem descrição)").slice(0, 80)}
+                                {(info.desc || "").length > 80 ? "..." : ""}
+                              </div>
+                            </div>
+                            <div className="tm-preview__qty" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                              <span>{totalMeas} medições</span>
+                              <span style={{ fontSize: "11px", opacity: 0.7 }}>{info.unit ?? "?"}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                   </div>
-                  <div className="status__lines">
-                    {aggLines.map((l, i) => (
-                      <span key={i}>{l}</span>
+
+                  <div className="tm-actions" style={{ marginTop: "16px" }}>
+                    <button type="button" onClick={downloadMemorial} className="tm-btn tm-btn--primary">
+                      <Table2 size={16} />
+                      Baixar Memorial Completo
+                    </button>
+                  </div>
+                </Section>
+              )}
+
+              {/* CONSOLIDAÇÃO */}
+              {items.length > 0 && (
+                <Section
+                  title="Consolidar Itens Repetidos"
+                  desc="Agrupe itens iguais e some as quantidades"
+                  right={
+                    <Badge kind={aggBadge.kind} icon={aggBadge.icon}>
+                      {aggPhase === "idle" ? "Pronto" : aggPhase === "work" ? "Somando" : aggPhase === "ok" ? "Concluído" : "Erro"}
+                    </Badge>
+                  }
+                >
+                  <div className="tm-panel__desc" style={{ marginBottom: "12px" }}>Regra de agrupamento:</div>
+                  <div className="tm-rule-grid">
+                    {[
+                      { v: "code_desc", label: "Código + Descrição" },
+                      { v: "code_only", label: "Apenas Código" },
+                      { v: "desc_only", label: "Apenas Descrição" },
+                    ].map((opt) => (
+                      <label key={opt.v} className={cn("tm-rule", aggRule === opt.v && "tm-rule--active")}>
+                        <input
+                          type="radio"
+                          name="rule"
+                          value={opt.v}
+                          checked={aggRule === opt.v}
+                          onChange={() => setAggRule(opt.v)}
+                        />
+                        {opt.label}
+                      </label>
                     ))}
                   </div>
 
-                  {aggPhase === "ok" && aggItems.length ? (
-                    <div className="panel" style={{ marginTop: "12px", padding: "14px" }}>
-                      <div className="panel__title" style={{ fontSize: "12px" }}>
-                        Previa do consolidado (8 primeiros)
+                  <div className="tm-actions" style={{ marginTop: "16px" }}>
+                    <button type="button" onClick={doAggregate} disabled={!canAggregate} className="tm-btn tm-btn--primary">
+                      {aggPhase === "work" ? <Loader2 size={16} className="tm-spin" /> : <Sigma size={16} />}
+                      Agrupar e Baixar
+                    </button>
+                    {aggPhase === "ok" && (
+                      <button
+                        type="button"
+                        onClick={downloadSomado}
+                        disabled={aggItems.length === 0}
+                        className="tm-btn tm-btn--outline"
+                      >
+                        <Download size={16} />
+                        Baixar Consolidado
+                      </button>
+                    )}
+                  </div>
+
+                  {aggPhase !== "idle" && (
+                    <div className="tm-status" style={{ marginTop: "14px" }}>
+                      <div className="tm-status__top">
+                        <span>{aggText}</span>
                       </div>
-                      <div className="preview" style={{ marginTop: "10px" }}>
-                        {aggItems.slice(0, 8).map((x, idx) => (
-                          <div key={idx} className="preview__item">
-                            <div className="preview__meta">
-                              <div className="preview__code">{x.codigo || "(sem codigo)"}</div>
-                              <div className="preview__desc">{x.descricao || "(sem descricao)"}</div>
+                      <div className="tm-status__lines">
+                        {aggLines.map((l, i) => (
+                          <span key={i}>{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {aggPhase === "ok" && aggItems.length > 0 && (
+                    <div style={{ marginTop: "16px" }}>
+                      <div className="tm-mini-title" style={{ marginBottom: "8px" }}>
+                        Prévia dos Resultados (primeiros 5)
+                      </div>
+                      <div className="tm-preview">
+                        {aggItems.slice(0, 5).map((x, idx) => (
+                          <div key={idx} className="tm-preview__item">
+                            <div className="tm-preview__meta">
+                              <div className="tm-preview__code">{x.codigo || "(sem código)"}</div>
+                              <div className="tm-preview__desc">{x.descricao || "(sem descrição)"}</div>
                             </div>
-                            <div className="preview__qty">{fmtQty(x.quantidade)}</div>
+                            <div className="tm-preview__qty">{fmtQty(x.quantidade)}</div>
                           </div>
                         ))}
                       </div>
                     </div>
-                  ) : null}
-                </div>
-              </Section>
+                  )}
+                </Section>
+              )}
             </motion.div>
-          ) : null}
+          )}
         </AnimatePresence>
 
-        <details className="panel">
-          <summary className="panel__title">Detalhes tecnicos</summary>
-          <Section title="2) Resumo" desc="Metricas do processamento e do consolidado (quando gerado).">
-            <div className="stats">
-              <StatCard label="Itens extraidos" value={fmtInt(items.length)} />
-              <StatCard
-                label="Itens somados"
-                value={fmtInt(aggItems.length)}
-                sub={aggPhase === "ok" ? `Regra: ${keyLabel}` : "-"}
-              />
-              <div className="stats__wide">
-                <StatCard label="Tabelas / Itens" value={meta ? `${meta.tables_total} / ${meta.itens_tables}` : "-"} />
-                <StatCard label="Ignoradas" value={meta ? fmtInt(meta.rows_ignored) : "-"} />
-              </div>
-            </div>
-          </Section>
-
-          <AnimatePresence>
-            {phase === "ok" && items.length ? (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
-                <Section
-                  title="4) Previa dos itens extraidos"
-                  desc="Mostra os 10 primeiros itens extraidos para conferencia rapida."
-                >
-                  <div className="status__top" style={{ marginBottom: "10px" }}>
-                    <span className="panel__title" style={{ fontSize: "12px" }}>
-                      Primeiros 10
-                    </span>
-                    <span className="status__file">{fmtInt(items.length)} linhas</span>
-                  </div>
-
-                  <div className="preview">
-                    {items.slice(0, 10).map((it, idx) => (
-                      <div key={idx} className="preview__item">
-                        <div className="preview__meta">
-                          <div className="preview__code">{it.codigo}</div>
-                          <div className="preview__desc">{it.descricao || "(sem descricao)"}</div>
-                          <div className="preview__origin">origem: {it.origem}</div>
-                        </div>
-                        <div className="preview__qty">{it.quantidade_raw}</div>
-                      </div>
-                    ))}
-                  </div>
-                </Section>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
-          <Section title="5) Regras e privacidade" desc="Referencia rapida das regras de extracao e garantia de processamento local.">
-            <div className="info-grid">
-              <div className="info-card">
-                <div className="info-card__title">Regras de extracao</div>
-                <ul>
-                  <li>Busca tabelas com cabecalho "Itens" na 1a linha.</li>
-                  <li>Coluna 1: Codigo (aceita 17.4 / 13.12 etc). Ignora #N/D.</li>
-                  <li>Coluna 2: Descricao.</li>
-                  <li>Quantidade: prefere 3a coluna; fallback por numero na linha.</li>
-                  <li>Exporta Excel (.xlsx) e Log (.txt).</li>
-                </ul>
-              </div>
-
-              <div className="info-card">
-                <div className="info-card__title">Privacidade</div>
-                <p className="panel__desc">
-                  O processamento acontece no seu navegador. Nenhum arquivo e enviado para servidor.
-                </p>
-              </div>
-            </div>
-          </Section>
-        </details>
+        <footer className="tm-footer">
+          TM Sempre Tecnologia · Extrator DOCX v1.4 · Ocean Breeze Design
+        </footer>
       </main>
-
-      <footer className="footer">TM Sempre Tecnologia - Extrator DOCX - v1.3</footer>
     </div>
   );
 }

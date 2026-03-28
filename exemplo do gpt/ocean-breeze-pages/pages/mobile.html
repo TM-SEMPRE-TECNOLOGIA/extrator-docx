@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Preview - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Preview mobile completo com tema claro e escuro">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">📱 Mobile Preview</h2>
+            <p class="section-intro">
+                Demonstração completa do Design System em dispositivos móveis. Todos os componentes são
+                responsivos e funcionam perfeitamente em smartphones e tablets, tanto em modo claro quanto escuro.
+            </p>
+        </section>
+
+        <!-- Mobile Frame - Light Mode -->
+        <section class="section">
+            <h2 class="section-title">Modo Claro</h2>
+            <div class="mobile-frame">
+                <div class="mobile-screen">
+                    <!-- Mobile Header -->
+                    <div class="mobile-header">
+                        <div style="font-weight: 700; font-size: 16px;">Ocean Breeze</div>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Menu</button>
+                    </div>
+
+                    <!-- Mobile Content -->
+                    <div class="mobile-content">
+                        <!-- Stats Cards -->
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Dashboard</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                            <div class="stat-card">
+                                <div class="stat-label">Receita</div>
+                                <div class="stat-value" style="font-size: 20px;">R$ 238k</div>
+                                <div class="stat-delta positive">↑ 12.5%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Conversão</div>
+                                <div class="stat-value" style="font-size: 20px;">4.8%</div>
+                                <div class="stat-delta positive">↑ 2.1%</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart -->
+                        <div class="card" style="margin-bottom: 16px;">
+                            <div class="stat-label" style="margin-bottom: 8px;">Tendência</div>
+                            <div class="chart-canvas" style="height: 100px;">
+                                <div class="chart-line"></div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Ações</h3>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                            <button class="btn btn-primary" style="width: 100%;">Ação Principal</button>
+                            <button class="btn btn-outline" style="width: 100%;">Ação Secundária</button>
+                        </div>
+
+                        <!-- Input -->
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Formulário</h3>
+                        <div class="form-group">
+                            <label class="label">Email</label>
+                            <input type="email" class="input" placeholder="seu@email.com">
+                        </div>
+
+                        <!-- Alert -->
+                        <div class="alert alert-success" style="font-size: 14px;">
+                            ✅ Operação concluída!
+                        </div>
+
+                        <!-- List -->
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Itens Recentes</h3>
+                        <div style="display: grid; gap: 8px;">
+                            <div class="card" style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Item 1</div>
+                                <div style="font-size: 12px; color: var(--TM-muted-foreground);">Descrição do item</div>
+                            </div>
+                            <div class="card" style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Item 2</div>
+                                <div style="font-size: 12px; color: var(--TM-muted-foreground);">Descrição do item</div>
+                            </div>
+                            <div class="card" style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Item 3</div>
+                                <div style="font-size: 12px; color: var(--TM-muted-foreground);">Descrição do item</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Navigation -->
+                    <div class="mobile-nav">
+                        <div class="mobile-nav-item active">
+                            <div style="font-size: 18px; margin-bottom: 4px;">🏠</div>
+                            <div>Home</div>
+                        </div>
+                        <div class="mobile-nav-item">
+                            <div style="font-size: 18px; margin-bottom: 4px;">📊</div>
+                            <div>Stats</div>
+                        </div>
+                        <div class="mobile-nav-item">
+                            <div style="font-size: 18px; margin-bottom: 4px;">⚙️</div>
+                            <div>Config</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mobile Frame - Dark Mode -->
+        <section class="section">
+            <h2 class="section-title">Modo Escuro</h2>
+            <div class="mobile-frame dark">
+                <div class="mobile-screen">
+                    <!-- Mobile Header -->
+                    <div class="mobile-header">
+                        <div style="font-weight: 700; font-size: 16px;">Ocean Breeze</div>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Menu</button>
+                    </div>
+
+                    <!-- Mobile Content -->
+                    <div class="mobile-content">
+                        <!-- Stats Cards -->
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Dashboard</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                            <div class="stat-card">
+                                <div class="stat-label">Receita</div>
+                                <div class="stat-value" style="font-size: 20px;">R$ 238k</div>
+                                <div class="stat-delta positive">↑ 12.5%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Conversão</div>
+                                <div class="stat-value" style="font-size: 20px;">4.8%</div>
+                                <div class="stat-delta positive">↑ 2.1%</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart -->
+                        <div class="card" style="margin-bottom: 16px;">
+                            <div class="stat-label" style="margin-bottom: 8px;">Tendência</div>
+                            <div class="chart-canvas" style="height: 100px;">
+                                <div class="chart-line"></div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Ações</h3>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                            <button class="btn btn-primary" style="width: 100%;">Ação Principal</button>
+                            <button class="btn btn-outline" style="width: 100%;">Ação Secundária</button>
+                        </div>
+
+                        <!-- Input -->
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Formulário</h3>
+                        <div class="form-group">
+                            <label class="label">Email</label>
+                            <input type="email" class="input" placeholder="seu@email.com">
+                        </div>
+
+                        <!-- Alert -->
+                        <div class="alert alert-success" style="font-size: 14px;">
+                            ✅ Operação concluída!
+                        </div>
+
+                        <!-- List -->
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Itens Recentes</h3>
+                        <div style="display: grid; gap: 8px;">
+                            <div class="card" style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Item 1</div>
+                                <div style="font-size: 12px; color: var(--TM-muted-foreground);">Descrição do item</div>
+                            </div>
+                            <div class="card" style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Item 2</div>
+                                <div style="font-size: 12px; color: var(--TM-muted-foreground);">Descrição do item</div>
+                            </div>
+                            <div class="card" style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Item 3</div>
+                                <div style="font-size: 12px; color: var(--TM-muted-foreground);">Descrição do item</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Navigation -->
+                    <div class="mobile-nav">
+                        <div class="mobile-nav-item active">
+                            <div style="font-size: 18px; margin-bottom: 4px;">🏠</div>
+                            <div>Home</div>
+                        </div>
+                        <div class="mobile-nav-item">
+                            <div style="font-size: 18px; margin-bottom: 4px;">📊</div>
+                            <div>Stats</div>
+                        </div>
+                        <div class="mobile-nav-item">
+                            <div style="font-size: 18px; margin-bottom: 4px;">⚙️</div>
+                            <div>Config</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="section">
+            <h2 class="section-title">Características Mobile</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">📱 Responsivo</div>
+                    <div class="card-description">
+                        Todos os componentes se adaptam automaticamente a diferentes tamanhos de tela,
+                        de smartphones a tablets.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">👆 Touch-Friendly</div>
+                    <div class="card-description">
+                        Áreas de toque adequadas (mínimo 44x44px) e espaçamento generoso para
+                        facilitar a interação em telas sensíveis ao toque.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🌓 Tema Adaptativo</div>
+                    <div class="card-description">
+                        Suporte completo para modo claro e escuro, com transições suaves e
+                        persistência de preferência do usuário.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Guidelines -->
+        <section class="section">
+            <h2 class="section-title">Diretrizes Mobile</h2>
+            <div class="alert alert-info">
+                ℹ️ <strong>Tamanhos de Toque:</strong> Mantenha áreas clicáveis com no mínimo 44x44px para garantir
+                facilidade de uso em dispositivos móveis.
+            </div>
+            <div class="alert alert-info">
+                ℹ️ <strong>Navegação:</strong> Prefira navegação bottom (inferior) em smartphones para facilitar
+                o alcance com o polegar.
+            </div>
+            <div class="alert alert-info">
+                ℹ️ <strong>Conteúdo:</strong> Priorize conteúdo essencial em telas pequenas. Use progressive disclosure
+                para informações secundárias.
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>

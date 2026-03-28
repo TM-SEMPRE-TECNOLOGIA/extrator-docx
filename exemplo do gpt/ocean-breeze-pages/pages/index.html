@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description"
+        content="Design System TM Ocean Breeze v2.0 - Sistema de design moderno e consistente para aplicações web">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">Bem-vindo ao Ocean Breeze v2.0</h2>
+            <p class="section-intro">
+                Um sistema de design completo e moderno, criado para proporcionar consistência visual e excelente
+                experiência
+                do usuário em todas as aplicações. Ocean Breeze combina uma paleta de cores inspirada no oceano com
+                componentes robustos e padrões de design testados.
+            </p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Visão Geral</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <div class="card-title">🎨 Tokens de Design</div>
+                    <div class="card-description">
+                        Cores, tipografia, sombras, espaçamentos e raios de borda padronizados.
+                        Todos os tokens são definidos como variáveis CSS para fácil manutenção e consistência.
+                    </div>
+                    <br>
+                    <a href="tokens.html" class="btn btn-primary">Ver Tokens</a>
+                </div>
+
+                <div class="card reveal delay-1">
+                    <div class="card-title">🧩 Componentes</div>
+                    <div class="card-description">
+                        Biblioteca completa de componentes reutilizáveis: botões, cards, inputs, alerts,
+                        formulários e muito mais. Todos seguem os tokens do sistema.
+                    </div>
+                    <br>
+                    <a href="components.html" class="btn btn-primary">Ver Componentes</a>
+                </div>
+
+                <div class="card reveal delay-2">
+                    <div class="card-title">📊 Dashboards</div>
+                    <div class="card-description">
+                        Visualizações de dados ricas com múltiplas métricas, gráficos variados e layouts
+                        prontos para análise executiva, operacional e de marketing.
+                    </div>
+                    <br>
+                    <a href="dashboards.html" class="btn btn-primary">Ver Dashboards</a>
+                </div>
+
+                <div class="card reveal delay-3">
+                    <div class="card-title">📱 Mobile First</div>
+                    <div class="card-description">
+                        Design responsivo com preview mobile completo. Todos os componentes são otimizados
+                        para funcionar perfeitamente em dispositivos móveis.
+                    </div>
+                    <br>
+                    <a href="mobile.html" class="btn btn-primary">Ver Mobile</a>
+                </div>
+
+                <div class="card reveal">
+                    <div class="card-title">♿ Acessibilidade</div>
+                    <div class="card-description">
+                        Diretrizes e práticas de acessibilidade (WCAG 2.1) integradas em todos os componentes.
+                        Contraste adequado, navegação por teclado e suporte a leitores de tela.
+                    </div>
+                    <br>
+                    <a href="accessibility.html" class="btn btn-primary">Ver Diretrizes</a>
+                </div>
+
+                <div class="card reveal delay-1">
+                    <div class="card-title">✍️ Conteúdo & Microcopy</div>
+                    <div class="card-description">
+                        Guia de estilo de escrita, tom de voz e boas práticas para criar conteúdo
+                        claro, conciso e alinhado com a identidade da marca.
+                    </div>
+                    <br>
+                    <a href="content.html" class="btn btn-primary">Ver Guia</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Características Principais</h2>
+            <div class="alert alert-info">
+                ℹ️ <strong>Modo Escuro Nativo:</strong> Todos os componentes suportam tema claro e escuro com transições
+                suaves.
+                A preferência do usuário é salva automaticamente.
+            </div>
+            <div class="alert alert-success">
+                ✅ <strong>CSS Puro:</strong> Sem dependências externas. Todo o sistema é construído com CSS e JavaScript
+                vanilla
+                para máxima performance e compatibilidade.
+            </div>
+            <div class="alert alert-info">
+                ℹ️ <strong>Totalmente Responsivo:</strong> Layouts que se adaptam perfeitamente a qualquer tamanho de
+                tela,
+                de smartphones a desktops 4K.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Como Usar</h2>
+            <div style="max-width: 800px;">
+                <h3 class="subsection-title">1. Incluir os Arquivos</h3>
+                <p class="section-intro">Adicione o CSS e JS no seu projeto:</p>
+                <div class="card">
+                    <pre class="font-mono"
+                        style="overflow-x: auto; padding: 16px; background: var(--TM-muted); border-radius: var(--TM-radius-md);">
+&lt;link rel="stylesheet" href="assets/styles.css"&gt;
+&lt;script src="assets/app.js"&gt;&lt;/script&gt;</pre>
+                </div>
+
+                <h3 class="subsection-title">2. Usar os Tokens</h3>
+                <p class="section-intro">Todos os tokens estão disponíveis como variáveis CSS:</p>
+                <div class="card">
+                    <pre class="font-mono"
+                        style="overflow-x: auto; padding: 16px; background: var(--TM-muted); border-radius: var(--TM-radius-md);">
+.meu-componente {
+    background: var(--TM-card);
+    color: var(--TM-foreground);
+    border-radius: var(--TM-radius-lg);
+    box-shadow: var(--TM-shadow-md);
+}</pre>
+                </div>
+
+                <h3 class="subsection-title">3. Aplicar Classes</h3>
+                <p class="section-intro">Use as classes pré-definidas para componentes comuns:</p>
+                <div class="card">
+                    <pre class="font-mono"
+                        style="overflow-x: auto; padding: 16px; background: var(--TM-muted); border-radius: var(--TM-radius-md);">
+&lt;button class="btn btn-primary"&gt;Meu Botão&lt;/button&gt;
+&lt;div class="card"&gt;
+    &lt;div class="card-title"&gt;Título&lt;/div&gt;
+    &lt;div class="card-description"&gt;Descrição&lt;/div&gt;
+&lt;/div&gt;</pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Navegação Rápida</h2>
+            <div class="button-grid">
+                <a href="tokens.html" class="btn btn-outline">Tokens de Design</a>
+                <a href="components.html" class="btn btn-outline">Componentes</a>
+                <a href="dashboards.html" class="btn btn-outline">Dashboards</a>
+                <a href="patterns.html" class="btn btn-outline">Padrões de Tela</a>
+                <a href="ux.html" class="btn btn-outline">UX Guidelines</a>
+                <a href="accessibility.html" class="btn btn-outline">Acessibilidade</a>
+                <a href="content.html" class="btn btn-outline">Conteúdo</a>
+                <a href="mobile.html" class="btn btn-outline">Mobile Preview</a>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>

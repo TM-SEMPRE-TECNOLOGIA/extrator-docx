@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padrões - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Padrões de telas e layouts prontos para uso">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">Padrões de Telas</h2>
+            <p class="section-intro">
+                Layouts e padrões de interface prontos para uso: sidebar, chat, blog e muito mais.
+                Todos seguem os tokens do Design System e são totalmente responsivos.
+            </p>
+        </section>
+
+        <!-- Chat Pattern -->
+        <section class="section">
+            <h2 class="section-title">💬 Padrão de Chat</h2>
+            <p class="section-intro">Layout completo para comunicação em tempo real com canais e mensagens.</p>
+            <div class="page-showcase">
+                <div class="page-card reveal">
+                    <div class="page-header">
+                        <div class="page-title">Sala de Suporte</div>
+                        <span class="pill">Live</span>
+                    </div>
+                    <div class="chat-shell">
+                        <div class="chat-sidebar">
+                            <div class="stat-label">Canais</div>
+                            <div class="sidebar-item active"># geral</div>
+                            <div class="sidebar-item"># produto</div>
+                            <div class="sidebar-item"># infra</div>
+                            <div class="sidebar-item"># marketing</div>
+                        </div>
+                        <div class="chat-thread">
+                            <div class="chat-bubble in">Equipe, precisamos revisar o painel de KPI.</div>
+                            <div class="chat-bubble out">Ok, vou ajustar a visualização de tendência.</div>
+                            <div class="chat-bubble in">Tragam o gráfico de SLA para a home.</div>
+                            <div class="chat-bubble out">Feito, já subi a versão com cards novos.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Pattern -->
+        <section class="section">
+            <h2 class="section-title">📝 Padrão de Blog</h2>
+            <p class="section-intro">Estrutura editorial com destaque principal, cards e tags para conteúdo contínuo.
+            </p>
+            <div class="page-showcase">
+                <div class="page-card reveal">
+                    <div class="page-header">
+                        <div class="page-title">Blog - Destaques</div>
+                        <span class="pill">Editorial</span>
+                    </div>
+                    <div class="blog-hero">
+                        <div class="blog-tag">Nova Edição</div>
+                        <div class="page-title">Como evoluir um design system sem perder consistência</div>
+                        <p class="section-intro">Um guia rápido sobre tokens, governança e novos componentes para times
+                            em escala.</p>
+                    </div>
+                    <div class="blog-grid">
+                        <div class="blog-card">
+                            <div class="blog-tag">Pesquisa</div>
+                            <div class="page-title">Tendências de UI para dashboards</div>
+                            <p class="section-intro">Gráficos claros, dados priorizados e layouts responsivos.</p>
+                        </div>
+                        <div class="blog-card">
+                            <div class="blog-tag">Produto</div>
+                            <div class="page-title">Componentes que aceleram squads</div>
+                            <p class="section-intro">Cards, tabelas e chat integrados ao sistema.</p>
+                        </div>
+                        <div class="blog-card">
+                            <div class="blog-tag">Cultura</div>
+                            <div class="page-title">Documentação viva com exemplos</div>
+                            <p class="section-intro">Templates e guidelines para consistência.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Metrics Pattern -->
+        <section class="section">
+            <h2 class="section-title">👥 Padrão de Métricas de Equipe</h2>
+            <p class="section-intro">Visão detalhada de produtividade, capacidade e equilíbrio entre squads.</p>
+            <div class="page-showcase">
+                <div class="page-card reveal">
+                    <div class="page-header">
+                        <div class="page-title">Métricas por Função</div>
+                        <span class="pill">People</span>
+                    </div>
+                    <div class="team-metrics">
+                        <div class="metric-row">
+                            <span>Design</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 68%;"></div>
+                            </div>
+                            <span>68%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>Engenharia</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 82%;"></div>
+                            </div>
+                            <span>82%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>Produto</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 54%;"></div>
+                            </div>
+                            <span>54%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>Operações</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 73%;"></div>
+                            </div>
+                            <span>73%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>

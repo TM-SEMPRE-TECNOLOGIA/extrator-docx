@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componentes - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Biblioteca completa de componentes reutilizáveis">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">Componentes</h2>
+            <p class="section-intro">
+                Biblioteca completa de componentes reutilizáveis construídos com os tokens do Design System.
+                Todos os componentes são responsivos, acessíveis e suportam tema claro e escuro.
+            </p>
+        </section>
+
+        <!-- Botões -->
+        <section class="section">
+            <h2 class="section-title">Botões</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-destructive">Destructive Button</button>
+                <button class="btn btn-outline">Outline Button</button>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <h2 class="section-title">Cards</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">Card Padrão</div>
+                    <div class="card-description">Este é um card padrão usando as cores e sombras do Design System.
+                        Hover para ver a animação.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Card com Conteúdo</div>
+                    <div class="card-description">Cards são usados para agrupar informações relacionadas e criar
+                        hierarquia visual na interface.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Card Interativo</div>
+                    <div class="card-description">Os cards respondem ao hover com elevação suave, criando feedback
+                        visual para o usuário.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Formulários -->
+        <section class="section">
+            <h2 class="section-title">Formulários</h2>
+            <div style="max-width: 500px;">
+                <div class="form-group">
+                    <label class="label">Nome Completo</label>
+                    <input type="text" class="input" placeholder="Digite seu nome">
+                </div>
+                <div class="form-group">
+                    <label class="label">Email</label>
+                    <input type="email" class="input" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="label">Mensagem</label>
+                    <textarea class="textarea" placeholder="Digite sua mensagem aqui..."></textarea>
+                </div>
+                <button class="btn btn-primary">Enviar Formulário</button>
+            </div>
+        </section>
+
+        <!-- Alerts -->
+        <section class="section">
+            <h2 class="section-title">Alertas e Feedback</h2>
+            <div class="alert alert-success">
+                ✅ Sucesso! Operação concluída com êxito.
+            </div>
+            <div class="alert alert-destructive">
+                ⚠️ Erro! Ocorreu um problema ao processar sua solicitação.
+            </div>
+            <div class="alert alert-info">
+                ℹ️ Informação: Esta é uma mensagem informativa para o usuário.
+            </div>
+        </section>
+
+        <!-- Sidebar Demo -->
+        <section class="section">
+            <h2 class="section-title">Sidebar</h2>
+            <div class="sidebar-demo">
+                <div class="sidebar">
+                    <div class="sidebar-item active">Dashboard</div>
+                    <div class="sidebar-item">Projetos</div>
+                    <div class="sidebar-item">Tarefas</div>
+                    <div class="sidebar-item">Equipe</div>
+                    <div class="sidebar-item">Configurações</div>
+                </div>
+                <div class="sidebar-content">
+                    <h3 style="margin-bottom: 12px;">Conteúdo Principal</h3>
+                    <p style="color: var(--TM-muted-foreground);">Esta é a área de conteúdo principal que usa o
+                        background padrão do sistema.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges e Pills -->
+        <section class="section">
+            <h2 class="section-title">Badges e Pills</h2>
+            <div class="button-grid">
+                <span class="pill">Novo</span>
+                <span class="pill">Beta</span>
+                <span class="pill">Premium</span>
+                <span class="version-badge">v2.0</span>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>

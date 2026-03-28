@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UX Guidelines - Design System TM Ocean Breeze v2.0</title>
+    <meta name="description" content="Diretrizes de experiência do usuário e boas práticas">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-brand">
+                <h1>Design System TM - Ocean Breeze <span class="version-badge">v2.0</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="tokens.html" class="nav-link">Tokens</a>
+                <a href="components.html" class="nav-link">Componentes</a>
+                <a href="dashboards.html" class="nav-link">Dashboards</a>
+                <a href="patterns.html" class="nav-link">Padrões</a>
+                <a href="ux.html" class="nav-link">UX</a>
+                <a href="accessibility.html" class="nav-link">Acessibilidade</a>
+                <a href="content.html" class="nav-link">Conteúdo</a>
+                <a href="mobile.html" class="nav-link">Mobile</a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title">UX Guidelines</h2>
+            <p class="section-intro">
+                Diretrizes de experiência do usuário para criar interfaces intuitivas, eficientes e agradáveis.
+                Estas práticas garantem consistência e qualidade em todos os produtos.
+            </p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Princípios Fundamentais</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">🎯 Clareza</div>
+                    <div class="card-description">
+                        Interfaces devem ser claras e diretas. Evite ambiguidades e comunique o propósito
+                        de cada elemento de forma óbvia.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">⚡ Eficiência</div>
+                    <div class="card-description">
+                        Minimize o número de passos necessários para completar tarefas. Otimize fluxos
+                        para usuários frequentes sem prejudicar novatos.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🔄 Consistência</div>
+                    <div class="card-description">
+                        Use padrões consistentes em toda a aplicação. Componentes similares devem
+                        comportar-se de maneira similar.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">💬 Feedback</div>
+                    <div class="card-description">
+                        Forneça feedback imediato para todas as ações do usuário. Estados de loading,
+                        sucesso e erro devem ser claramente comunicados.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🛡️ Prevenção de Erros</div>
+                    <div class="card-description">
+                        Projete interfaces que previnam erros sempre que possível. Quando erros ocorrerem,
+                        forneça mensagens claras e soluções.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">♿ Acessibilidade</div>
+                    <div class="card-description">
+                        Garanta que todos os usuários possam acessar e usar a interface, independentemente
+                        de suas habilidades ou tecnologias assistivas.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Hierarquia Visual</h2>
+            <div class="card">
+                <h3 class="subsection-title">Tamanho e Peso</h3>
+                <p class="section-intro">Use tamanho e peso de fonte para criar hierarquia clara:</p>
+                <div style="margin-top: 16px;">
+                    <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Título Principal (32px, Bold)
+                    </h1>
+                    <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">Subtítulo (24px, Semibold)</h2>
+                    <p style="font-size: 16px; margin-bottom: 8px;">Corpo de texto (16px, Regular)</p>
+                    <p style="font-size: 14px; color: var(--TM-muted-foreground);">Texto secundário (14px, Regular,
+                        Muted)</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Espaçamento e Respiração</h2>
+            <div class="alert alert-info">
+                ℹ️ Use espaçamento generoso para criar respiração visual. Elementos muito próximos causam
+                confusão e dificultam a leitura.
+            </div>
+            <div class="card" style="margin-top: 16px;">
+                <h3 class="subsection-title">Regra dos 8px</h3>
+                <p class="section-intro">
+                    Todo espaçamento deve ser múltiplo de 8px (8, 16, 24, 32, 48, 64). Isso cria ritmo
+                    visual consistente e facilita alinhamento.
+                </p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Estados Interativos</h2>
+            <div class="card">
+                <h3 class="subsection-title">Todos os elementos interativos devem ter estados claros:</h3>
+                <ul style="margin-left: 24px; margin-top: 12px; line-height: 1.8;">
+                    <li><strong>Default:</strong> Estado padrão do elemento</li>
+                    <li><strong>Hover:</strong> Quando o cursor está sobre o elemento</li>
+                    <li><strong>Active:</strong> Quando o elemento está sendo clicado</li>
+                    <li><strong>Focus:</strong> Quando o elemento tem foco (navegação por teclado)</li>
+                    <li><strong>Disabled:</strong> Quando o elemento está desabilitado</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Microinterações</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">Transições Suaves</div>
+                    <div class="card-description">
+                        Use transições de 200-300ms para mudanças de estado. Evite animações muito
+                        longas que retardam a percepção de resposta.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Feedback Visual</div>
+                    <div class="card-description">
+                        Botões devem ter feedback visual imediato ao serem clicados. Use mudanças
+                        sutis de cor ou elevação.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Loading States</div>
+                    <div class="card-description">
+                        Sempre mostre indicadores de loading para operações que levam mais de 1 segundo.
+                        Use skeleton screens quando apropriado.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="../assets/app.js"></script>
+</body>
+
+</html>
